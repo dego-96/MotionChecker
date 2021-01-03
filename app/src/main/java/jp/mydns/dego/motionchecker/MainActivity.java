@@ -3,6 +3,7 @@ package jp.mydns.dego.motionchecker;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
+import android.view.View;
 
 import jp.mydns.dego.motionchecker.Util.DebugLog;
 
@@ -21,6 +22,7 @@ public class MainActivity extends AppCompatActivity {
         DebugLog.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        this.hideSystemUI();
     }
 
     @Override
@@ -56,5 +58,13 @@ public class MainActivity extends AppCompatActivity {
     // ---------------------------------------------------------------------------------------------
     // Private Method
     // ---------------------------------------------------------------------------------------------
+    private void hideSystemUI() {
+        DebugLog.d(TAG, "hideSystemUI");
+        View decor = this.getWindow().getDecorView();
+        decor.setSystemUiVisibility(
+            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
+                View.SYSTEM_UI_FLAG_FULLSCREEN |
+                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+    }
 
 }
