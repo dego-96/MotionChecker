@@ -17,7 +17,9 @@
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:layout_gravity="center"
+            android:clickable="false"
             android:contentDescription="@string/content_description_background"
+            android:focusable="false"
             android:src="@drawable/no_video"
             android:visibility="visible" />
 
@@ -26,8 +28,10 @@
             android:layout_width="60dp"
             android:layout_height="60dp"
             android:layout_margin="10dp"
+            android:clickable="true"
             android:contentDescription="@string/content_description_gallery"
-            android:src="@drawable/archive_videos"
+            android:focusable="true"
+            android:src="@drawable/button_gallery"
             android:visibility="visible" />
 
         <LinearLayout
@@ -43,7 +47,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <!-- Previous Frame -->
+                <!-- Previous Frame Button -->
                 <ImageView
                     android:id="@+id/button_previous_frame"
                     android:layout_width="30dp"
@@ -52,7 +56,8 @@
                     android:layout_margin="10dp"
                     android:clickable="false"
                     android:contentDescription="@string/content_description_previous_frame"
-                    android:src="@drawable/previous_frame"
+                    android:focusable="true"
+                    android:src="@drawable/button_previous_frame"
                     android:visibility="invisible" />
 
                 <Space
@@ -69,7 +74,8 @@
                     android:layout_margin="10dp"
                     android:clickable="false"
                     android:contentDescription="@string/content_description_next_frame"
-                    android:src="@drawable/next_frame"
+                    android:focusable="true"
+                    android:src="@drawable/button_next_frame"
                     android:visibility="invisible" />
 
             </LinearLayout>
@@ -154,7 +160,8 @@
                     android:layout_margin="10dp"
                     android:clickable="false"
                     android:contentDescription="@string/content_description_speed_down"
-                    android:src="@drawable/speed_down"
+                    android:focusable="true"
+                    android:src="@drawable/button_speed_down"
                     android:visibility="invisible" />
 
                 <Space
@@ -170,7 +177,8 @@
                     android:layout_margin="10dp"
                     android:clickable="false"
                     android:contentDescription="@string/content_description_stop"
-                    android:src="@drawable/stop"
+                    android:focusable="true"
+                    android:src="@drawable/button_video_stop"
                     android:visibility="invisible" />
 
                 <Space
@@ -186,7 +194,8 @@
                     android:layout_margin="10dp"
                     android:clickable="false"
                     android:contentDescription="@string/content_description_play"
-                    android:src="@drawable/play"
+                    android:focusable="true"
+                    android:src="@drawable/button_video_play"
                     android:visibility="invisible" />
 
                 <Space
@@ -202,7 +211,8 @@
                     android:layout_margin="10dp"
                     android:clickable="false"
                     android:contentDescription="@string/content_description_speed_up"
-                    android:src="@drawable/speed_up"
+                    android:focusable="true"
+                    android:src="@drawable/button_speed_up"
                     android:visibility="invisible" />
 
                 <Space
