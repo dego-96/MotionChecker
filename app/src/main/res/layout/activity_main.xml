@@ -1,18 +1,219 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    <FrameLayout
+        android:id="@+id/main_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/background_dark">
+
+        <!-- Background (no video icon) -->
+        <ImageView
+            android:id="@+id/image_background"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="center"
+            android:contentDescription="@string/content_description_background"
+            android:src="@drawable/no_video"
+            android:visibility="visible" />
+
+        <!-- Gallery Button -->
+        <ImageView
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_margin="10dp"
+            android:contentDescription="@string/content_description_gallery"
+            android:src="@drawable/archive_videos"
+            android:visibility="visible" />
+
+        <LinearLayout
+            android:id="@+id/layout_video_controller"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/layout_frame_control"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <!-- Previous Frame -->
+                <ImageView
+                    android:id="@+id/button_previous_frame"
+                    android:layout_width="30dp"
+                    android:layout_height="50dp"
+                    android:layout_gravity="start"
+                    android:layout_margin="10dp"
+                    android:clickable="false"
+                    android:contentDescription="@string/content_description_previous_frame"
+                    android:src="@drawable/previous_frame"
+                    android:visibility="invisible" />
+
+                <Space
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+                <!-- Next Frame -->
+                <ImageView
+                    android:id="@+id/button_next_frame"
+                    android:layout_width="30dp"
+                    android:layout_height="50dp"
+                    android:layout_gravity="end"
+                    android:layout_margin="10dp"
+                    android:clickable="false"
+                    android:contentDescription="@string/content_description_next_frame"
+                    android:src="@drawable/next_frame"
+                    android:visibility="invisible" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/layout_playtime"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/text_view_current_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="start"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginBottom="5dp"
+                    android:text="@string/current_time_init"
+                    android:textColor="@android:color/white"
+                    android:textSize="15sp"
+                    android:visibility="invisible" />
+
+                <Space
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:id="@+id/text_view_speed"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginBottom="5dp"
+                    android:text="@string/play_speed_init"
+                    android:textColor="@android:color/white"
+                    android:textSize="15sp"
+                    android:visibility="invisible" />
+
+                <Space
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:id="@+id/text_view_remain_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginBottom="5dp"
+                    android:text="@string/remain_time_init"
+                    android:textColor="@android:color/white"
+                    android:textSize="15sp"
+                    android:visibility="invisible" />
+
+            </LinearLayout>
+
+            <SeekBar
+                android:id="@+id/seek_bar_playtime"
+                android:layout_width="match_parent"
+                android:layout_height="20dp"
+                android:layout_margin="5dp"
+                android:visibility="invisible" />
+
+            <LinearLayout
+                android:id="@+id/layout_control_buttons"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:orientation="horizontal">
+
+                <Space
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+                <!-- Speed Down -->
+                <ImageView
+                    android:id="@+id/button_speed_down"
+                    android:layout_width="70dp"
+                    android:layout_height="40dp"
+                    android:layout_margin="10dp"
+                    android:clickable="false"
+                    android:contentDescription="@string/content_description_speed_down"
+                    android:src="@drawable/speed_down"
+                    android:visibility="invisible" />
+
+                <Space
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+                <!-- Stop -->
+                <ImageView
+                    android:id="@+id/button_stop"
+                    android:layout_width="70dp"
+                    android:layout_height="40dp"
+                    android:layout_margin="10dp"
+                    android:clickable="false"
+                    android:contentDescription="@string/content_description_stop"
+                    android:src="@drawable/stop"
+                    android:visibility="invisible" />
+
+                <Space
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+                <!-- Play/Pause -->
+                <ImageView
+                    android:id="@+id/button_play"
+                    android:layout_width="70dp"
+                    android:layout_height="40dp"
+                    android:layout_margin="10dp"
+                    android:clickable="false"
+                    android:contentDescription="@string/content_description_play"
+                    android:src="@drawable/play"
+                    android:visibility="invisible" />
+
+                <Space
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+                <!-- Speed Up -->
+                <ImageView
+                    android:id="@+id/button_speed_up"
+                    android:layout_width="70dp"
+                    android:layout_height="40dp"
+                    android:layout_margin="10dp"
+                    android:clickable="false"
+                    android:contentDescription="@string/content_description_speed_up"
+                    android:src="@drawable/speed_up"
+                    android:visibility="invisible" />
+
+                <Space
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
