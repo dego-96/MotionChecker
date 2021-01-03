@@ -1,10 +1,10 @@
-package jp.mydns.dego.myapplication;
+package jp.mydns.dego.motionchecker;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 
-import jp.mydns.dego.myapplication.Util.DebugLog;
+import jp.mydns.dego.motionchecker.Util.DebugLog;
 
 public class MainActivity extends AppCompatActivity {
 

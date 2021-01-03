@@ -1,8 +1,8 @@
-package jp.mydns.dego.myapplication.Util;
+package jp.mydns.dego.motionchecker.Util;
 
 import android.util.Log;
 
-import jp.mydns.dego.myapplication.BuildConfig;
+import jp.mydns.dego.motionchecker.BuildConfig;
 
 public class DebugLog {
 
