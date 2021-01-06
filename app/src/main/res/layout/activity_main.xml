@@ -32,6 +32,7 @@
             android:contentDescription="@string/content_description_gallery"
             android:focusable="true"
             android:src="@drawable/button_gallery"
+            android:onClick="onVideoSelectButtonClicked"
             android:visibility="visible" />
 
         <LinearLayout

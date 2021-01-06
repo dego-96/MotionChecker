@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">モーションチェッカー</string>
 
+    <!-- Layout -->
     <string name="content_description_background">No Video Data</string>
     <string name="content_description_gallery">Select Video</string>
     <string name="content_description_play">Play Video</string>
@@ -9,8 +10,12 @@
     <string name="content_description_speed_down">Speed Down</string>
     <string name="content_description_next_frame">To Next Frame</string>
     <string name="content_description_previous_frame">To Previous Frame</string>
-
     <string name="current_time_init">00:00:000</string>
     <string name="remain_time_init">--:--:---</string>
     <string name="play_speed_init">x1.0</string>
+
+    <!-- Toast -->
+    <string name="toast_no_permission">動画を選択できません。</string>
+    <string name="toast_no_video">動画を取得できませんでした。</string>
+
 </resources>
