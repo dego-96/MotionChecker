@@ -13,6 +13,7 @@ import android.widget.Toast;
 import jp.mydns.dego.motionchecker.Util.DebugLog;
 import jp.mydns.dego.motionchecker.Util.FilePathHelper;
 import jp.mydns.dego.motionchecker.Util.PermissionManager;
+import jp.mydns.dego.motionchecker.VideoPlayer.VideoController;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -153,6 +154,36 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void onPlayButtonClicked(View view) {
+        DebugLog.d(TAG, "onPlayButtonClicked");
+        VideoController.getInstance().play();
+    }
+
+    public void onStopButtonClicked(View view) {
+        DebugLog.d(TAG, "onStopButtonClicked");
+        VideoController.getInstance().stop();
+    }
+
+    public void onSpeedUpButtonClicked(View view) {
+        DebugLog.d(TAG, "onSpeedUpButtonClicked");
+        VideoController.getInstance().speedUp();
+    }
+
+    public void onSpeedDownButtonClicked(View view) {
+        DebugLog.d(TAG, "onSpeedDownButtonClicked");
+        VideoController.getInstance().speedDown();
+    }
+
+    public void onNextFrameButtonClicked(View view) {
+        DebugLog.d(TAG, "onNextFrameButtonClicked");
+        VideoController.getInstance().nextFrame();
+    }
+
+    public void onPreviousFrameButtonClicked(View view) {
+        DebugLog.d(TAG, "onPreviousFrameButtonClicked");
+        VideoController.getInstance().previousFrame();
+    }
+
     // ---------------------------------------------------------------------------------------------
     // Private Method
     // ---------------------------------------------------------------------------------------------
@@ -214,7 +245,7 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(getApplication(), getString(R.string.toast_no_video), Toast.LENGTH_SHORT).show();
         } else {
             DebugLog.d(TAG, "video path :" + videoPath);
-//                this.videoController.setVideoPath(videoPath);
+            VideoController.getInstance().setVideoPath(videoPath);
         }
 
     }

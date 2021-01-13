@@ -11,6 +11,18 @@ public class DebugLog {
     // ---------------------------------------------------------------------------------------------
 
     /**
+     * log verbose
+     *
+     * @param tag tag
+     * @param msg log message
+     */
+    public static void v(String tag, String msg) {
+        if (BuildConfig.DEBUG) {
+            Log.v(tag, msg);
+        }
+    }
+
+    /**
      * log debug
      *
      * @param tag tag
