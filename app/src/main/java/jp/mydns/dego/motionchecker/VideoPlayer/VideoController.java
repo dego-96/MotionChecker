@@ -1,5 +1,6 @@
 package jp.mydns.dego.motionchecker.VideoPlayer;
 
+import jp.mydns.dego.motionchecker.InstanceHolder;
 import jp.mydns.dego.motionchecker.Util.DebugLog;
 
 public class VideoController {
@@ -22,9 +23,6 @@ public class VideoController {
     // ---------------------------------------------------------------------------------------------
     // private fields
     // ---------------------------------------------------------------------------------------------
-    private static VideoController videoController;
-
-    //    private VideoRunnable runnable;
     private String filePath;
 //    private Thread videoThread;
 //    private int speedLevel;
@@ -36,7 +34,7 @@ public class VideoController {
     /**
      * VideoController
      */
-    private VideoController() {
+    public VideoController() {
         DebugLog.d(TAG, "VideoController");
         this.filePath = null;
 //        this.videoThread = null;
@@ -48,18 +46,6 @@ public class VideoController {
     // ---------------------------------------------------------------------------------------------
 
     /**
-     * getInstance
-     *
-     * @return video controller instance
-     */
-    public static VideoController getInstance() {
-        if (videoController == null) {
-            videoController = new VideoController();
-        }
-        return videoController;
-    }
-
-    /**
      * setVideoPath
      *
      * @param path video file path
@@ -68,6 +54,15 @@ public class VideoController {
         DebugLog.d(TAG, "setVideoPath");
         this.filePath = path;
         DebugLog.v(TAG, "path : " + this.filePath);
+    }
+
+    /**
+     * isStandby
+     *
+     * @return video controller is standby.
+     */
+    public boolean isStandby() {
+        return (this.filePath != null && !"".equals(this.filePath));
     }
 
     /**
@@ -131,7 +126,6 @@ public class VideoController {
      */
     public void previousFrame() {
         DebugLog.d(TAG, "previousFrame");
-
     }
 
 }

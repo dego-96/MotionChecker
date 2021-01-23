@@ -13,7 +13,8 @@ import android.widget.Toast;
 import jp.mydns.dego.motionchecker.Util.DebugLog;
 import jp.mydns.dego.motionchecker.Util.FilePathHelper;
 import jp.mydns.dego.motionchecker.Util.PermissionManager;
-import jp.mydns.dego.motionchecker.VideoPlayer.VideoController;
+import jp.mydns.dego.motionchecker.VideoPlayer.VideoRunnable;
+import jp.mydns.dego.motionchecker.View.ViewController;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -30,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
     private PermissionManager permissionManager;
 
     // ---------------------------------------------------------------------------------------------
-    // Android Lifecycle
+    // Activity Lifecycle
     // ---------------------------------------------------------------------------------------------
 
     /**
@@ -55,6 +56,12 @@ public class MainActivity extends AppCompatActivity {
     public void onStart() {
         DebugLog.d(TAG, "onStart");
         super.onStart();
+
+        ViewController viewController = InstanceHolder.getInstance().getViewController();
+        viewController.bindRootView(this.getWindow().getDecorView());
+        if (!InstanceHolder.getInstance().getVideoController().isStandby()) {
+            viewController.setVisibility(VideoRunnable.STATUS.INIT);
+        }
     }
 
     /**
@@ -154,34 +161,70 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * onPlayButtonClicked
+     *
+     * @param view image view
+     */
     public void onPlayButtonClicked(View view) {
         DebugLog.d(TAG, "onPlayButtonClicked");
-        VideoController.getInstance().play();
+
+        InstanceHolder.getInstance().getVideoController().play();
     }
 
+    /**
+     * onStopButtonClicked
+     *
+     * @param view image view
+     */
     public void onStopButtonClicked(View view) {
         DebugLog.d(TAG, "onStopButtonClicked");
-        VideoController.getInstance().stop();
+
+        InstanceHolder.getInstance().getVideoController().stop();
     }
 
+    /**
+     * onSpeedUpButtonClicked
+     *
+     * @param view image view
+     */
     public void onSpeedUpButtonClicked(View view) {
         DebugLog.d(TAG, "onSpeedUpButtonClicked");
-        VideoController.getInstance().speedUp();
+
+        InstanceHolder.getInstance().getVideoController().speedUp();
     }
 
+    /**
+     * onSpeedDownButtonClicked
+     *
+     * @param view image view
+     */
     public void onSpeedDownButtonClicked(View view) {
         DebugLog.d(TAG, "onSpeedDownButtonClicked");
-        VideoController.getInstance().speedDown();
+
+        InstanceHolder.getInstance().getVideoController().speedDown();
     }
 
+    /**
+     * onNextFrameButtonClicked
+     *
+     * @param view image view
+     */
     public void onNextFrameButtonClicked(View view) {
         DebugLog.d(TAG, "onNextFrameButtonClicked");
-        VideoController.getInstance().nextFrame();
+
+        InstanceHolder.getInstance().getVideoController().nextFrame();
     }
 
+    /**
+     * onPreviousFrameButtonClicked
+     *
+     * @param view image view
+     */
     public void onPreviousFrameButtonClicked(View view) {
         DebugLog.d(TAG, "onPreviousFrameButtonClicked");
-        VideoController.getInstance().previousFrame();
+
+        InstanceHolder.getInstance().getVideoController().previousFrame();
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -242,10 +285,12 @@ public class MainActivity extends AppCompatActivity {
         String videoPath = FilePathHelper.getVideoPathFromUri(this, data);
 
         if (videoPath == null || "".equals(videoPath)) {
+            InstanceHolder.getInstance().getViewController().setVisibility(VideoRunnable.STATUS.INIT);
             Toast.makeText(getApplication(), getString(R.string.toast_no_video), Toast.LENGTH_SHORT).show();
         } else {
             DebugLog.d(TAG, "video path :" + videoPath);
-            VideoController.getInstance().setVideoPath(videoPath);
+            InstanceHolder.getInstance().getViewController().setVisibility(VideoRunnable.STATUS.VIDEO_SELECTED);
+            InstanceHolder.getInstance().getVideoController().setVideoPath(videoPath);
         }
 
     }

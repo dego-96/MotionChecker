@@ -11,9 +11,16 @@
         android:layout_height="match_parent"
         android:background="@android:color/background_dark">
 
+        <jp.mydns.dego.motionchecker.View.VideoSurfaceView
+            android:id="@+id/video_surface_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:visibility="gone" />
+
         <!-- Background (no video icon) -->
         <ImageView
-            android:id="@+id/image_background"
+            android:id="@+id/image_no_video"
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:layout_gravity="center"
@@ -25,6 +32,7 @@
 
         <!-- Gallery Button -->
         <ImageView
+            android:id="@+id/button_gallery"
             android:layout_width="60dp"
             android:layout_height="60dp"
             android:layout_margin="10dp"
@@ -60,7 +68,7 @@
                     android:focusable="true"
                     android:onClick="onPreviousFrameButtonClicked"
                     android:src="@drawable/button_previous_frame"
-                    android:visibility="invisible" />
+                    android:visibility="visible" />
 
                 <Space
                     android:layout_width="0dp"
