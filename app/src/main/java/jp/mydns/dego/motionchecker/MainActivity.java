@@ -142,89 +142,38 @@ public class MainActivity extends AppCompatActivity {
     // ---------------------------------------------------------------------------------------------
 
     /**
-     * onVideoSelectButtonClicked
+     * onButtonClicked
      *
-     * @param view button
+     * @param button button view
      */
-    public void onVideoSelectButtonClicked(View view) {
-        DebugLog.d(TAG, "onVideoSelectButtonClicked");
-        if (permissionManager.getPermission(Manifest.permission.READ_EXTERNAL_STORAGE)) {
-            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-            intent.addCategory(Intent.CATEGORY_OPENABLE);
-            intent.setType("video/*");
-            startActivityForResult(intent, REQUEST_GALLERY);
-        } else {
-            ActivityCompat.requestPermissions(
-                this,
-                new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                REQUEST_PERMISSION_READ_EXTERNAL_STORAGE);
+    public void onButtonClicked(View button) {
+        DebugLog.d(TAG, "onButtonClicked");
+
+        switch (button.getId()) {
+            case R.id.button_gallery:
+                videoSelect();
+                break;
+            case R.id.button_play:
+                InstanceHolder.getInstance().getVideoController().play();
+                break;
+            case R.id.button_stop:
+                InstanceHolder.getInstance().getVideoController().stop();
+                break;
+            case R.id.button_speed_up:
+                InstanceHolder.getInstance().getVideoController().speedUp();
+                break;
+            case R.id.button_speed_down:
+                InstanceHolder.getInstance().getVideoController().speedDown();
+                break;
+            case R.id.button_next_frame:
+                InstanceHolder.getInstance().getVideoController().nextFrame();
+                break;
+            case R.id.button_previous_frame:
+                InstanceHolder.getInstance().getVideoController().previousFrame();
+                break;
+            default:
+                break;
         }
-    }
-
-    /**
-     * onPlayButtonClicked
-     *
-     * @param view image view
-     */
-    public void onPlayButtonClicked(View view) {
-        DebugLog.d(TAG, "onPlayButtonClicked");
-
-        InstanceHolder.getInstance().getVideoController().play();
-    }
-
-    /**
-     * onStopButtonClicked
-     *
-     * @param view image view
-     */
-    public void onStopButtonClicked(View view) {
-        DebugLog.d(TAG, "onStopButtonClicked");
-
-        InstanceHolder.getInstance().getVideoController().stop();
-    }
-
-    /**
-     * onSpeedUpButtonClicked
-     *
-     * @param view image view
-     */
-    public void onSpeedUpButtonClicked(View view) {
-        DebugLog.d(TAG, "onSpeedUpButtonClicked");
-
-        InstanceHolder.getInstance().getVideoController().speedUp();
-    }
-
-    /**
-     * onSpeedDownButtonClicked
-     *
-     * @param view image view
-     */
-    public void onSpeedDownButtonClicked(View view) {
-        DebugLog.d(TAG, "onSpeedDownButtonClicked");
-
-        InstanceHolder.getInstance().getVideoController().speedDown();
-    }
-
-    /**
-     * onNextFrameButtonClicked
-     *
-     * @param view image view
-     */
-    public void onNextFrameButtonClicked(View view) {
-        DebugLog.d(TAG, "onNextFrameButtonClicked");
-
-        InstanceHolder.getInstance().getVideoController().nextFrame();
-    }
-
-    /**
-     * onPreviousFrameButtonClicked
-     *
-     * @param view image view
-     */
-    public void onPreviousFrameButtonClicked(View view) {
-        DebugLog.d(TAG, "onPreviousFrameButtonClicked");
-
-        InstanceHolder.getInstance().getVideoController().previousFrame();
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -292,6 +241,24 @@ public class MainActivity extends AppCompatActivity {
             InstanceHolder.getInstance().getViewController().setVisibility(VideoRunnable.STATUS.VIDEO_SELECTED);
             InstanceHolder.getInstance().getVideoController().setVideoPath(videoPath);
         }
-
     }
+
+    /**
+     * videoSelect
+     */
+    private void videoSelect() {
+        DebugLog.d(TAG, "onVideoSelectButtonClicked");
+        if (permissionManager.getPermission(Manifest.permission.READ_EXTERNAL_STORAGE)) {
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("video/*");
+            startActivityForResult(intent, REQUEST_GALLERY);
+        } else {
+            ActivityCompat.requestPermissions(
+                this,
+                new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                REQUEST_PERMISSION_READ_EXTERNAL_STORAGE);
+        }
+    }
+
 }

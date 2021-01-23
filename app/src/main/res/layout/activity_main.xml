@@ -39,7 +39,7 @@
             android:clickable="true"
             android:contentDescription="@string/content_description_gallery"
             android:focusable="true"
-            android:onClick="onVideoSelectButtonClicked"
+            android:onClick="onButtonClicked"
             android:src="@drawable/button_gallery"
             android:visibility="visible" />
 
@@ -66,7 +66,7 @@
                     android:clickable="false"
                     android:contentDescription="@string/content_description_previous_frame"
                     android:focusable="true"
-                    android:onClick="onPreviousFrameButtonClicked"
+                    android:onClick="onButtonClicked"
                     android:src="@drawable/button_previous_frame"
                     android:visibility="visible" />
 
@@ -85,7 +85,7 @@
                     android:clickable="false"
                     android:contentDescription="@string/content_description_next_frame"
                     android:focusable="true"
-                    android:onClick="onNextFrameButtonClicked"
+                    android:onClick="onButtonClicked"
                     android:src="@drawable/button_next_frame"
                     android:visibility="invisible" />
 
@@ -172,7 +172,7 @@
                     android:clickable="false"
                     android:contentDescription="@string/content_description_speed_down"
                     android:focusable="true"
-                    android:onClick="onSpeedDownButtonClicked"
+                    android:onClick="onButtonClicked"
                     android:src="@drawable/button_speed_down"
                     android:visibility="invisible" />
 
@@ -190,7 +190,7 @@
                     android:clickable="false"
                     android:contentDescription="@string/content_description_stop"
                     android:focusable="true"
-                    android:onClick="onStopButtonClicked"
+                    android:onClick="onButtonClicked"
                     android:src="@drawable/button_video_stop"
                     android:visibility="invisible" />
 
@@ -208,7 +208,7 @@
                     android:clickable="false"
                     android:contentDescription="@string/content_description_play"
                     android:focusable="true"
-                    android:onClick="onPlayButtonClicked"
+                    android:onClick="onButtonClicked"
                     android:src="@drawable/button_video_play"
                     android:visibility="invisible" />
 
@@ -226,7 +226,7 @@
                     android:clickable="false"
                     android:contentDescription="@string/content_description_speed_up"
                     android:focusable="true"
-                    android:onClick="onSpeedUpButtonClicked"
+                    android:onClick="onButtonClicked"
                     android:src="@drawable/button_speed_up"
                     android:visibility="invisible" />
 
