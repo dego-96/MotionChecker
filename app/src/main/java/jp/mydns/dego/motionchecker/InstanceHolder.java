@@ -3,8 +3,8 @@ package jp.mydns.dego.motionchecker;
 import android.app.Application;
 
 import jp.mydns.dego.motionchecker.Util.DebugLog;
+import jp.mydns.dego.motionchecker.Util.PermissionManager;
 import jp.mydns.dego.motionchecker.VideoPlayer.VideoController;
-import jp.mydns.dego.motionchecker.VideoPlayer.VideoRunnable;
 import jp.mydns.dego.motionchecker.View.ViewController;
 
 public class InstanceHolder extends Application {
@@ -20,7 +20,8 @@ public class InstanceHolder extends Application {
     private static InstanceHolder instance = null;
     private ViewController viewController = null;
     private VideoController videoController = null;
-    private VideoRunnable videoRunnable = null;
+//    private VideoRunnable videoRunnable = null;
+    private PermissionManager permissionManager = null;
 
     // ---------------------------------------------------------------------------------------------
     // public method
@@ -81,4 +82,16 @@ public class InstanceHolder extends Application {
 //        }
 //        return this.videoRunnable;
 //    }
+
+    /**
+     * getPermissionManager
+     *
+     * @return PermissionManager
+     */
+    public PermissionManager getPermissionManager() {
+        if (this.permissionManager == null) {
+            this.permissionManager = new PermissionManager();
+        }
+        return this.permissionManager;
+    }
 }

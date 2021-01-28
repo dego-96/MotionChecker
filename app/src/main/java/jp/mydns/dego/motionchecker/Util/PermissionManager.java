@@ -26,8 +26,7 @@ public class PermissionManager {
     // ---------------------------------------------------------------------------------------------
     // Private Fields
     // ---------------------------------------------------------------------------------------------
-    private static PermissionManager instance = null;
-    private static int[] permissionDenyCount;
+    private int[] permissionDenyCount;
 
     private boolean canReadExternalStorage;
     private boolean canInternet;
@@ -35,10 +34,12 @@ public class PermissionManager {
     // ---------------------------------------------------------------------------------------------
     // Constructor
     // ---------------------------------------------------------------------------------------------
-    private PermissionManager() {
+    public PermissionManager() {
         DebugLog.d(TAG, "PermissionManager");
         this.canReadExternalStorage = false;
         this.canInternet = false;
+
+        this.permissionDenyCount = new int[PERMISSIONS_COUNT];
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -46,22 +47,9 @@ public class PermissionManager {
     // ---------------------------------------------------------------------------------------------
 
     /**
-     * getInstance
-     *
-     * @return PermissionManager
-     */
-    public static PermissionManager getInstance() {
-        if (instance == null) {
-            permissionDenyCount = new int[PERMISSIONS_COUNT];
-            instance = new PermissionManager();
-        }
-        return instance;
-    }
-
-    /**
      * clearDenyCount
      */
-    public static void clearDenyCount() {
+    public void clearDenyCount() {
         for (int index = 0; index < permissionDenyCount.length; index++) {
             permissionDenyCount[index] = 0;
         }

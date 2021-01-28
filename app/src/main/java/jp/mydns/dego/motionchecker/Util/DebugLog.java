@@ -47,6 +47,18 @@ public class DebugLog {
     }
 
     /**
+     * log info
+     *
+     * @param tag tag
+     * @param msg log message
+     */
+    public static void i(String tag, String msg) {
+        if (BuildConfig.DEBUG) {
+            Log.i(tag, msg);
+        }
+    }
+
+    /**
      * log error
      *
      * @param tag tag

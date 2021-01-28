@@ -1,6 +1,9 @@
 package jp.mydns.dego.motionchecker.View;
 
+import android.graphics.Color;
+import android.graphics.Point;
 import android.util.SparseArray;
+import android.view.Display;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -19,6 +22,7 @@ public class ViewController {
     // private fields
     // ---------------------------------------------------------------------------------------------
     private View rootView;
+    private Display display;
     private SparseArray<View> views;
     private int[] viewIdList = {
         R.id.video_surface_view,
@@ -65,10 +69,18 @@ public class ViewController {
     // public method
     // ---------------------------------------------------------------------------------------------
 
+    /**
+     * bindRootView
+     *
+     * @param rootView layout root view
+     */
     public void bindRootView(View rootView) {
         DebugLog.d(TAG, "bindRootView");
 
         this.rootView = rootView;
+        int width = rootView.getWidth();
+        int height = rootView.getHeight();
+        DebugLog.v(TAG, "rootView size (w, h) : (" + width + ", " + height + ")");
 
         if (this.views == null) {
             this.views = new SparseArray<>();
@@ -84,16 +96,20 @@ public class ViewController {
         }
     }
 
-//    /**
-//     * addView
-//     *
-//     * @param context application context
-//     * @param id      view id
-//     */
-//    private void addView(Activity context, int id) {
-//        DebugLog.d(TAG, "addView");
-//        this.views.put(id, context.findViewById(id));
-//    }
+    /**
+     * bindDisplay
+     *
+     * @param display display
+     */
+    public void bindDisplay(Display display) {
+        DebugLog.d(TAG, "bindDisplay");
+        this.display = display;
+
+        if (this.views != null) {
+            VideoSurfaceView view = (VideoSurfaceView) this.getView(R.id.video_surface_view);
+            view.setDisplay(display);
+        }
+    }
 
     /**
      * setVisibility
@@ -120,6 +136,58 @@ public class ViewController {
         }
 
         this.setImageResource(status);
+    }
+
+    /**
+     * setSurfaceViewSize
+     *
+     * @param width    video width
+     * @param height   video height
+     * @param rotation video rotation
+     */
+    public void setSurfaceViewSize(int width, int height, int rotation) {
+        DebugLog.d(TAG, "setSurfaceViewSize");
+        DebugLog.v(TAG, "surface view size (w, h) : (" + width + ", " + height + ")");
+
+        if (this.display == null) {
+            DebugLog.e(TAG, "Can not set surface view size.");
+            return;
+        }
+
+        Point point = new Point();
+        this.display.getSize(point);
+        int displayW = point.x;
+        int displayH = point.y;
+        float videoAspect = (float) width / (float) height;
+        float displayAspect = (float) displayW / (float) displayH;
+
+        int calcW;
+        int calcH;
+        if ((rotation % 180) == 0) {   // 横長画像
+            if (displayAspect > videoAspect) {
+                // 画面より横長
+                calcW = (int) ((float) width * ((float) displayH / (float) height));
+                calcH = displayH;
+            } else {
+                // 画面より横長
+                calcW = displayW;
+                calcH = (int) ((float) height * ((float) displayW / (float) width));
+            }
+        } else {    // 縦長画像
+            if (displayAspect > videoAspect) {
+                // 画面より縦長
+                calcW = (int) ((float) height * ((float) displayH / (float) width));
+                calcH = displayH;
+            } else {
+                // 画面より横長
+                calcW = displayH;
+                calcH = (int) ((float) width * ((float) displayW / (float) height));
+            }
+        }
+
+        VideoSurfaceView surfaceView = (VideoSurfaceView) this.getView(R.id.video_surface_view);
+        surfaceView.setSize(calcW, calcH);
+        surfaceView.setBackgroundColor(Color.GREEN);    // for debug
     }
 
     // ---------------------------------------------------------------------------------------------

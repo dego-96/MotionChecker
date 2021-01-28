@@ -13,6 +13,7 @@ import android.widget.Toast;
 import jp.mydns.dego.motionchecker.Util.DebugLog;
 import jp.mydns.dego.motionchecker.Util.FilePathHelper;
 import jp.mydns.dego.motionchecker.Util.PermissionManager;
+import jp.mydns.dego.motionchecker.VideoPlayer.VideoController;
 import jp.mydns.dego.motionchecker.VideoPlayer.VideoRunnable;
 import jp.mydns.dego.motionchecker.View.ViewController;
 
@@ -28,7 +29,6 @@ public class MainActivity extends AppCompatActivity {
     // ---------------------------------------------------------------------------------------------
     // Private Fields
     // ---------------------------------------------------------------------------------------------
-    private PermissionManager permissionManager;
 
     // ---------------------------------------------------------------------------------------------
     // Activity Lifecycle
@@ -45,8 +45,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         this.hideSystemUI();
-
-        this.permissionManager = PermissionManager.getInstance();
     }
 
     /**
@@ -59,7 +57,11 @@ public class MainActivity extends AppCompatActivity {
 
         ViewController viewController = InstanceHolder.getInstance().getViewController();
         viewController.bindRootView(this.getWindow().getDecorView());
-        if (!InstanceHolder.getInstance().getVideoController().isStandby()) {
+        viewController.bindDisplay(this.getWindowManager().getDefaultDisplay());
+        if (InstanceHolder.getInstance().getVideoController().isStandby()) {
+            VideoController.VideoInfo info = InstanceHolder.getInstance().getVideoController().getVideoInfo();
+            viewController.setSurfaceViewSize(info.getWidth(), info.getHeight(), info.getRotation());
+        } else {
             viewController.setVisibility(VideoRunnable.STATUS.INIT);
         }
     }
@@ -72,8 +74,9 @@ public class MainActivity extends AppCompatActivity {
         DebugLog.d(TAG, "onResume");
         super.onResume();
 
-        if (!this.permissionManager.getPermission(Manifest.permission.READ_EXTERNAL_STORAGE) &&
-            this.permissionManager.checkReadExternalStorage(this) == PermissionManager.PermissionResult.DENIED) {
+        PermissionManager permissionManager = InstanceHolder.getInstance().getPermissionManager();
+        if (!permissionManager.getPermission(Manifest.permission.READ_EXTERNAL_STORAGE) &&
+            permissionManager.checkReadExternalStorage(this) == PermissionManager.PermissionResult.DENIED) {
             ActivityCompat.requestPermissions(
                 this,
                 new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
@@ -107,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
         DebugLog.d(TAG, "onDestroy");
         super.onDestroy();
 
-        PermissionManager.clearDenyCount();
+        InstanceHolder.getInstance().getPermissionManager().clearDenyCount();
     }
 
     /**
@@ -204,7 +207,8 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        if (this.permissionManager.checkReadExternalStorage(this) != PermissionManager.PermissionResult.GRANTED) {
+        if (InstanceHolder.getInstance().getPermissionManager()
+            .checkReadExternalStorage(this) != PermissionManager.PermissionResult.GRANTED) {
             Toast.makeText(
                 this,
                 getString(R.string.toast_no_permission),
@@ -227,7 +231,8 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        if (!this.permissionManager.getPermission(Manifest.permission.READ_EXTERNAL_STORAGE)) {
+        if (!InstanceHolder.getInstance().getPermissionManager()
+            .getPermission(Manifest.permission.READ_EXTERNAL_STORAGE)) {
             DebugLog.e(TAG, "Can not read external storage.");
             return;
         }
@@ -248,7 +253,8 @@ public class MainActivity extends AppCompatActivity {
      */
     private void videoSelect() {
         DebugLog.d(TAG, "onVideoSelectButtonClicked");
-        if (permissionManager.getPermission(Manifest.permission.READ_EXTERNAL_STORAGE)) {
+        if (InstanceHolder.getInstance().getPermissionManager()
+            .getPermission(Manifest.permission.READ_EXTERNAL_STORAGE)) {
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("video/*");
