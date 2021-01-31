@@ -56,9 +56,10 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
 
         ViewController viewController = InstanceHolder.getInstance().getViewController();
+        VideoController videoController = InstanceHolder.getInstance().getVideoController();
         viewController.bindRootView(this.getWindow().getDecorView());
         viewController.bindDisplay(this.getWindowManager().getDefaultDisplay());
-        if (InstanceHolder.getInstance().getVideoController().isStandby()) {
+        if (videoController.hasVideoPath()) {
             VideoController.VideoInfo info = InstanceHolder.getInstance().getVideoController().getVideoInfo();
             viewController.setSurfaceViewSize(info.getWidth(), info.getHeight(), info.getRotation());
         } else {

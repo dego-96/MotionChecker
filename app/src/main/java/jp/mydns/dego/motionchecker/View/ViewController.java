@@ -1,6 +1,5 @@
 package jp.mydns.dego.motionchecker.View;
 
-import android.graphics.Color;
 import android.graphics.Point;
 import android.util.SparseArray;
 import android.view.Display;
@@ -187,7 +186,6 @@ public class ViewController {
 
         VideoSurfaceView surfaceView = (VideoSurfaceView) this.getView(R.id.video_surface_view);
         surfaceView.setSize(calcW, calcH);
-        surfaceView.setBackgroundColor(Color.GREEN);    // for debug
     }
 
     // ---------------------------------------------------------------------------------------------

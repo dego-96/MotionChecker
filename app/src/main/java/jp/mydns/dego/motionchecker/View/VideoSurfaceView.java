@@ -7,12 +7,13 @@ import android.util.AttributeSet;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
+import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import jp.mydns.dego.motionchecker.InstanceHolder;
 import jp.mydns.dego.motionchecker.Util.DebugLog;
 
-public class VideoSurfaceView extends SurfaceView {
+public class VideoSurfaceView extends SurfaceView implements SurfaceHolder.Callback {
 
     // ---------------------------------------------------------------------------------------------
     // inner class
@@ -92,8 +93,8 @@ public class VideoSurfaceView extends SurfaceView {
      */
     public VideoSurfaceView(Context context) {
         super(context);
-        DebugLog.d(TAG, "VideoSurfaceView");
-        init();
+        DebugLog.d(TAG, "VideoSurfaceView 1");
+        init(context);
     }
 
     /**
@@ -104,8 +105,8 @@ public class VideoSurfaceView extends SurfaceView {
      */
     public VideoSurfaceView(Context context, AttributeSet attributeSet) {
         super(context, attributeSet);
-        DebugLog.d(TAG, "VideoSurfaceView");
-        init();
+        DebugLog.d(TAG, "VideoSurfaceView 2");
+        init(context);
     }
 
     /**
@@ -117,8 +118,8 @@ public class VideoSurfaceView extends SurfaceView {
      */
     public VideoSurfaceView(Context context, AttributeSet attributeSet, int defStyleAttr) {
         super(context, attributeSet, defStyleAttr);
-        DebugLog.d(TAG, "VideoSurfaceView");
-        init();
+        DebugLog.d(TAG, "VideoSurfaceView 3");
+        init(context);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -165,6 +166,43 @@ public class VideoSurfaceView extends SurfaceView {
     }
 
     /**
+     * surfaceCreated
+     *
+     * @param holder surface holder
+     */
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+        DebugLog.d(TAG, "surfaceCreated");
+        InstanceHolder.getInstance().getVideoController().videoSetup(holder.getSurface());
+    }
+
+    /**
+     * surfaceChanged
+     *
+     * @param holder surface holder
+     * @param format format
+     * @param width  width
+     * @param height height
+     */
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+        DebugLog.d(TAG, "surfaceChanged");
+        DebugLog.v(TAG, "format : " + format);
+        DebugLog.v(TAG, "width  : " + width);
+        DebugLog.v(TAG, "height : " + height);
+    }
+
+    /**
+     * surfaceDestroyed
+     *
+     * @param holder surface holder
+     */
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+        DebugLog.d(TAG, "surfaceDestroyed");
+    }
+
+    /**
      * setSize
      *
      * @param width  width
@@ -207,10 +245,15 @@ public class VideoSurfaceView extends SurfaceView {
     /**
      * init
      */
-    private void init() {
+    private void init(Context context) {
         DebugLog.d(TAG, "init");
 
-        Context context = InstanceHolder.getInstance().getApplicationContext();
+        SurfaceHolder holder = this.getHolder();
+        if (holder != null) {
+            holder.addCallback(this);
+        } else {
+            DebugLog.e(TAG, "holder is null");
+        }
 
         this.scaleGestureDetector = new ScaleGestureDetector(context, new ScaleGestureDetector.OnScaleGestureListener() {
             @Override
@@ -236,7 +279,6 @@ public class VideoSurfaceView extends SurfaceView {
 
         this.scale = 1.0f;
         this.layoutInfo = null;
-//        this.canChangeLayout = true;
     }
 
     /**

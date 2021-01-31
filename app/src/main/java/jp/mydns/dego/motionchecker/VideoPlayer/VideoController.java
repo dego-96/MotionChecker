@@ -1,7 +1,10 @@
 package jp.mydns.dego.motionchecker.VideoPlayer;
 
 import android.media.MediaMetadataRetriever;
+import android.view.Surface;
 
+import jp.mydns.dego.motionchecker.BuildConfig;
+import jp.mydns.dego.motionchecker.InstanceHolder;
 import jp.mydns.dego.motionchecker.Util.DebugLog;
 
 public class VideoController {
@@ -48,15 +51,12 @@ public class VideoController {
 
     private static final String TAG = "VideoController";
     private VideoInfo info;
-//    private static final int SPEED_SLOWEST = VIDEO_SPEEDS.length - 1;
-//    private static final int SPEED_FASTEST = 0;
 
     // ---------------------------------------------------------------------------------------------
     // private fields
     // ---------------------------------------------------------------------------------------------
     private String filePath;
-//    private Thread videoThread;
-//    private int speedLevel;
+    private Thread videoThread;
 
     // ---------------------------------------------------------------------------------------------
     // constructor
@@ -68,8 +68,6 @@ public class VideoController {
     public VideoController() {
         DebugLog.d(TAG, "VideoController");
         this.filePath = null;
-//        this.videoThread = null;
-//        this.speedLevel = 0;
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -88,13 +86,41 @@ public class VideoController {
 
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
         retriever.setDataSource(path);
-        logMetaData(retriever);
+        if (BuildConfig.DEBUG) {
+            logMetaData(retriever);
+        }
 
         this.info = new VideoInfo();
         this.info.width = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH));
         this.info.height = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT));
         this.info.rotation = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION));
     }
+
+    /**
+     * videoSetup
+     *
+     * @param surface surface
+     */
+    public void videoSetup(Surface surface) {
+        DebugLog.d(TAG, "videoSetup");
+
+        if (this.videoThread != null && this.videoThread.isAlive()) {
+            try {
+                this.videoThread.join();
+            } catch (InterruptedException exception) {
+                exception.printStackTrace();
+            }
+            return;
+        }
+
+        VideoRunnable player = InstanceHolder.getInstance().getVideoRunnable();
+        if (this.filePath != null && surface != null && player.getStatus() == VideoRunnable.STATUS.INIT) {
+            if (player.init(this.filePath, surface)) {
+                this.threadStart();
+            }
+        }
+    }
+
 
     /**
      * getVideoInfo
@@ -106,11 +132,11 @@ public class VideoController {
     }
 
     /**
-     * isStandby
+     * hasVideoPath
      *
      * @return video controller is standby.
      */
-    public boolean isStandby() {
+    public boolean hasVideoPath() {
         return (this.filePath != null && !"".equals(this.filePath));
     }
 
@@ -175,6 +201,20 @@ public class VideoController {
      */
     public void previousFrame() {
         DebugLog.d(TAG, "previousFrame");
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // private method
+    // ---------------------------------------------------------------------------------------------
+
+    /**
+     * threadStart
+     */
+    private void threadStart() {
+        DebugLog.d(TAG, "threadStart");
+        VideoRunnable player = InstanceHolder.getInstance().getVideoRunnable();
+        this.videoThread = new Thread(player);
+        this.videoThread.start();
     }
 
     /**
