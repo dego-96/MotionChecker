@@ -146,15 +146,27 @@ public class VideoController {
     public void play() {
         DebugLog.d(TAG, "play");
 
+        VideoRunnable runnable = InstanceHolder.getInstance().getVideoRunnable();
+        if (runnable.getStatus() == VideoRunnable.STATUS.PAUSED) {
+            threadStart();
+        } else if (runnable.getStatus() == VideoRunnable.STATUS.VIDEO_END) {
+            runnable.release();
+            if (runnable.prepare(this.filePath)) {
+                this.threadStart();
+            }
+        }
     }
 
-//    /**
-//     * pause
-//     */
-//    public void pause() {
-//        DebugLog.d(TAG, "pause");
-//
-//    }
+    /**
+     * pause
+     */
+    public void pause() {
+        DebugLog.d(TAG, "pause");
+
+        if (this.videoThread != null && this.videoThread.isAlive()) {
+            this.videoThread.interrupt();
+        }
+    }
 
     /**
      * stop

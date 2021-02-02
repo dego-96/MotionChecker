@@ -5,7 +5,14 @@ import android.util.SparseArray;
 import android.view.Display;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.SeekBar;
+import android.widget.TextView;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
+import jp.mydns.dego.motionchecker.InstanceHolder;
 import jp.mydns.dego.motionchecker.R;
 import jp.mydns.dego.motionchecker.Util.DebugLog;
 import jp.mydns.dego.motionchecker.VideoPlayer.VideoRunnable;
@@ -20,6 +27,7 @@ public class ViewController {
     // ---------------------------------------------------------------------------------------------
     // private fields
     // ---------------------------------------------------------------------------------------------
+    private static final SimpleDateFormat TimerFormat = new SimpleDateFormat("mm:ss:SSS", Locale.JAPAN);
     private View rootView;
     private Display display;
     private SparseArray<View> views;
@@ -34,6 +42,8 @@ public class ViewController {
         R.id.button_next_frame,
         R.id.button_previous_frame,
         R.id.seek_bar_playtime,
+        R.id.text_view_current_time,
+        R.id.text_view_remain_time,
     };
     private final int[][] visibilityTable = {
         /* 0x00:VISIBLE,  0x04:INVISIBLE,  0x08:GONE */
@@ -48,6 +58,8 @@ public class ViewController {
         {0x08, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00},   /* button_next_frame */
         {0x08, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00},   /* button_previous_frame */
         {0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   /* seek_bar_playtime */
+        {0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   /* text_view_current_time */
+        {0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   /* text_view_remain_time */
     };
 
     // ---------------------------------------------------------------------------------------------
@@ -186,6 +198,37 @@ public class ViewController {
 
         VideoSurfaceView surfaceView = (VideoSurfaceView) this.getView(R.id.video_surface_view);
         surfaceView.setSize(calcW, calcH);
+    }
+
+    /**
+     * setDuration
+     *
+     * @param duration duration
+     */
+    public void setDuration(int duration) {
+        DebugLog.d(TAG, "setDuration (" + duration + ")");
+        ((SeekBar) this.getView(R.id.seek_bar_playtime)).setMax(duration);
+        ((TextView) this.getView(R.id.text_view_remain_time)).setText(TimerFormat.format(new Date(duration)));
+    }
+
+    /**
+     * setProgress
+     *
+     * @param progress progress
+     */
+    public void setProgress(int progress) {
+        DebugLog.d(TAG, "setProgress (" + progress + ")");
+        SeekBar seekBar = (SeekBar) this.getView(R.id.seek_bar_playtime);
+        seekBar.setProgress(progress);
+
+        ((TextView) this.getView(R.id.text_view_current_time)).setText(TimerFormat.format(new Date(progress)));
+        int duration = seekBar.getMax();
+        if (progress < duration) {
+            ((TextView) this.getView(R.id.text_view_remain_time)).setText(TimerFormat.format(new Date()));
+        } else {
+            DebugLog.e(TAG, "progress value error.");
+            ((TextView) this.getView(R.id.text_view_remain_time)).setText(InstanceHolder.getInstance().getText(R.string.remain_time_init));
+        }
     }
 
     // ---------------------------------------------------------------------------------------------

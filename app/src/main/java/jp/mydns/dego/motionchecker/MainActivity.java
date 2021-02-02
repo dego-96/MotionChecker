@@ -153,27 +153,37 @@ public class MainActivity extends AppCompatActivity {
     public void onButtonClicked(View button) {
         DebugLog.d(TAG, "onButtonClicked");
 
+        VideoController videoController = InstanceHolder.getInstance().getVideoController();
+
         switch (button.getId()) {
             case R.id.button_gallery:
                 videoSelect();
                 break;
             case R.id.button_play:
-                InstanceHolder.getInstance().getVideoController().play();
+                VideoRunnable.STATUS status = InstanceHolder.getInstance().getVideoRunnable().getStatus();
+                if (status == VideoRunnable.STATUS.PLAYING) {
+                    videoController.pause();
+                } else if (status == VideoRunnable.STATUS.VIDEO_SELECTED ||
+                    status == VideoRunnable.STATUS.PAUSED ||
+                    status == VideoRunnable.STATUS.VIDEO_END
+                ) {
+                    videoController.play();
+                }
                 break;
             case R.id.button_stop:
-                InstanceHolder.getInstance().getVideoController().stop();
+                videoController.stop();
                 break;
             case R.id.button_speed_up:
-                InstanceHolder.getInstance().getVideoController().speedUp();
+                videoController.speedUp();
                 break;
             case R.id.button_speed_down:
-                InstanceHolder.getInstance().getVideoController().speedDown();
+                videoController.speedDown();
                 break;
             case R.id.button_next_frame:
-                InstanceHolder.getInstance().getVideoController().nextFrame();
+                videoController.nextFrame();
                 break;
             case R.id.button_previous_frame:
-                InstanceHolder.getInstance().getVideoController().previousFrame();
+                videoController.previousFrame();
                 break;
             default:
                 break;

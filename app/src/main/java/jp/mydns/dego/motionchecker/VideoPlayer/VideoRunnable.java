@@ -1,8 +1,11 @@
 package jp.mydns.dego.motionchecker.VideoPlayer;
 
+import android.content.Context;
 import android.media.MediaCodec;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
+import android.os.Bundle;
+import android.os.Message;
 import android.view.Surface;
 
 import java.io.IOException;
@@ -100,6 +103,7 @@ public class VideoRunnable implements Runnable {
     private MediaCodec decoder;
     private MediaExtractor extractor;
     private VideoTimer videoTimer;
+    private VideoPlayerHandler handler;
 
     // ---------------------------------------------------------------------------------------------
     // constructor
@@ -111,53 +115,12 @@ public class VideoRunnable implements Runnable {
     public VideoRunnable() {
         DebugLog.d(TAG, "VideoRunnable");
         this.videoStatus = STATUS.INIT;
+        this.handler = new VideoPlayerHandler();
     }
 
     // ---------------------------------------------------------------------------------------------
     // package private method
     // ---------------------------------------------------------------------------------------------
-
-    /**
-     * getStatus
-     *
-     * @return video status
-     */
-    STATUS getStatus() {
-        return this.videoStatus;
-    }
-
-    // ---------------------------------------------------------------------------------------------
-    // public method
-    // ---------------------------------------------------------------------------------------------
-
-    /**
-     * run
-     */
-    @Override
-    synchronized public void run() {
-        DebugLog.d(TAG_THREAD, "run");
-        DebugLog.d(TAG_THREAD, "status :" + this.getStatus().name());
-
-        switch (this.getStatus()) {
-            case INIT:
-            case PLAYING:
-            default:
-                // Nothing to do.
-                break;
-            case PAUSED:
-            case VIDEO_END:
-//                this.play();
-                break;
-            case VIDEO_SELECTED:
-            case NEXT_FRAME:
-            case SEEKING:
-                this.nextFrame();
-                break;
-            case PREVIOUS_FRAME:
-//                this.toPreviousFrame();
-                break;
-        }
-    }
 
     /**
      * init
@@ -173,11 +136,7 @@ public class VideoRunnable implements Runnable {
         this.surface = surface;
         this.videoTimer = new VideoTimer();
 
-        if (this.prepare(filePath)) {
-            this.setStatus(STATUS.VIDEO_SELECTED, true);
-            return true;
-        }
-        return false;
+        return this.prepare(filePath);
     }
 
     /**
@@ -186,7 +145,7 @@ public class VideoRunnable implements Runnable {
      * @param filePath file path
      * @return prepare result
      */
-    private boolean prepare(String filePath) {
+    boolean prepare(String filePath) {
         DebugLog.d(TAG, "prepare");
         this.extractor = new MediaExtractor();
         try {
@@ -207,6 +166,9 @@ public class VideoRunnable implements Runnable {
                     e.printStackTrace();
                 }
 
+                long duration = format.getLong(MediaFormat.KEY_DURATION);
+                InstanceHolder.getInstance().getViewController().setDuration((int) (duration / 1000));
+
                 try {
                     DebugLog.d(TAG, "format: " + format);
                     this.decoder.configure(format, this.surface, null, 0);
@@ -221,7 +183,64 @@ public class VideoRunnable implements Runnable {
             this.decoder.start();
         }
 
+        if (this.getStatus() == STATUS.INIT) {
+            this.setStatus(STATUS.VIDEO_SELECTED, true);
+        } else if (this.getStatus() == STATUS.VIDEO_END) {
+            this.setStatus(STATUS.PAUSED, true);
+        }
         return true;
+    }
+
+    /**
+     * release
+     */
+    void release() {
+        DebugLog.d(TAG, "release");
+        this.decoder.stop();
+        this.decoder.release();
+        this.extractor.release();
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // public method
+    // ---------------------------------------------------------------------------------------------
+
+    /**
+     * getStatus
+     *
+     * @return video status
+     */
+    public STATUS getStatus() {
+        return this.videoStatus;
+    }
+
+    /**
+     * run
+     */
+    @Override
+    synchronized public void run() {
+        DebugLog.d(TAG_THREAD, "run");
+        DebugLog.d(TAG_THREAD, "status :" + this.getStatus().name());
+
+        switch (this.getStatus()) {
+            case INIT:
+            case PLAYING:
+            default:
+                // Nothing to do.
+                break;
+            case PAUSED:
+            case VIDEO_END:
+                this.play();
+                break;
+            case VIDEO_SELECTED:
+            case NEXT_FRAME:
+            case SEEKING:
+                this.nextFrame();
+                break;
+            case PREVIOUS_FRAME:
+//                this.toPreviousFrame();
+                break;
+        }
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -238,8 +257,70 @@ public class VideoRunnable implements Runnable {
         this.videoStatus = status;
 
         if (visibility) {
-            InstanceHolder.getInstance().getViewController().setVisibility(status);
+            Context context = InstanceHolder.getInstance();
+            if (Thread.currentThread().equals(context.getMainLooper().getThread())) {
+                InstanceHolder.getInstance().getViewController().setVisibility(status);
+            } else {
+                this.sendMessage();
+            }
         }
+    }
+
+    /**
+     * sendMessage
+     */
+    private void sendMessage() {
+        DebugLog.d(TAG, "sendMessage");
+
+        Message message = Message.obtain();
+        Bundle bundle = new Bundle();
+        bundle.putLong(VideoPlayerHandler.MESSAGE_PROGRESS_US, -1);
+        bundle.putSerializable(VideoPlayerHandler.MESSAGE_STATUS, this.getStatus());
+        message.setData(bundle);
+        this.handler.sendMessage(message);
+    }
+
+    /**
+     * sendMessage
+     *
+     * @param time_us time (microsecond)
+     */
+    private void sendMessage(long time_us) {
+        DebugLog.d(TAG, "sendMessage(" + time_us + ")");
+
+        Bundle bundle = new Bundle();
+        bundle.putLong(VideoPlayerHandler.MESSAGE_PROGRESS_US, time_us);
+        Message message = Message.obtain();
+        message.setData(bundle);
+        this.handler.sendMessage(message);
+    }
+
+    /**
+     * play
+     */
+    private void play() {
+        DebugLog.d(TAG_THREAD, "play");
+        this.setStatus(STATUS.PLAYING, true);
+
+        MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
+        boolean isEos = false;
+        this.videoTimer.start();
+
+        while (!Thread.currentThread().isInterrupted() && !this.videoTimer.isInterrupted) {
+            if (!isEos) {
+                isEos = queueInput();
+            }
+
+            queueOutput(info);
+
+            // All decoded frames have been rendered, we can stop playing now
+            if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+                DebugLog.d(TAG_THREAD, "OutputBuffer BUFFER_FLAG_END_OF_STREAM");
+                this.setStatus(STATUS.VIDEO_END, true);
+                return;
+            }
+        }
+        this.setStatus(STATUS.PAUSED, true);
     }
 
     /**
@@ -316,6 +397,7 @@ public class VideoRunnable implements Runnable {
                 this.videoTimer.setRenderTime();
 
                 DebugLog.v(TAG_THREAD, "presentationTimeUs : " + info.presentationTimeUs);
+                this.sendMessage(info.presentationTimeUs);
                 return true;
             }
         }
