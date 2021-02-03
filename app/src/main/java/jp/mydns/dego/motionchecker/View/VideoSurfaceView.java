@@ -18,9 +18,9 @@ public class VideoSurfaceView extends SurfaceView implements SurfaceHolder.Callb
     // ---------------------------------------------------------------------------------------------
     // inner class
     // ---------------------------------------------------------------------------------------------
-    private class LayoutInfo {
-        private Rect displaySize;
-        private Point center;
+    private static class LayoutInfo {
+        private final Rect displaySize;
+        private final Point center;
         private int timeTouchDown;
         private Point startPoint;
         private Rect initLayout;
@@ -348,8 +348,8 @@ public class VideoSurfaceView extends SurfaceView implements SurfaceHolder.Callb
 
         /* calc scale */
         this.scale *= scale;
-        this.scale = this.scale > SCALE_MAX ? SCALE_MAX : this.scale;
-        this.scale = this.scale < SCALE_MIN ? SCALE_MIN : this.scale;
+        this.scale = Math.min(this.scale, SCALE_MAX);
+        this.scale = Math.max(this.scale, SCALE_MIN);
         DebugLog.v(TAG, "scale : " + this.scale);
 
         int width = (int) ((float) this.layoutInfo.initLayout.width() * this.scale);

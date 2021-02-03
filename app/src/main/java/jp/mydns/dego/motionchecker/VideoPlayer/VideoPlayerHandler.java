@@ -55,7 +55,7 @@ public class VideoPlayerHandler extends Handler {
             viewController.setProgress((int) (time_us / 1000));
         }
 
-        VideoRunnable.STATUS status = (VideoRunnable.STATUS) message.getData().getSerializable(MESSAGE_STATUS);
+        VideoDecoder.STATUS status = (VideoDecoder.STATUS) message.getData().getSerializable(MESSAGE_STATUS);
         if (status != null) {
             DebugLog.d(TAG, "status : " + status.name() + " (" + status + ")");
             viewController.setVisibility(status);

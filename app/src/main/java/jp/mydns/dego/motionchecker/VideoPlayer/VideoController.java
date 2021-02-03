@@ -12,7 +12,7 @@ public class VideoController {
     // ---------------------------------------------------------------------------------------------
     // inner class
     // ---------------------------------------------------------------------------------------------
-    public class VideoInfo {
+    public static class VideoInfo {
         int width;
         int height;
         int duration;
@@ -113,9 +113,9 @@ public class VideoController {
             return;
         }
 
-        VideoRunnable player = InstanceHolder.getInstance().getVideoRunnable();
-        if (this.filePath != null && surface != null && player.getStatus() == VideoRunnable.STATUS.INIT) {
-            if (player.init(this.filePath, surface)) {
+        VideoDecoder decoder = InstanceHolder.getInstance().getVideoDecoder();
+        if (this.filePath != null && surface != null && decoder.getStatus() == VideoDecoder.STATUS.INIT) {
+            if (decoder.init(this.filePath, surface)) {
                 this.threadStart();
             }
         }
@@ -146,12 +146,12 @@ public class VideoController {
     public void play() {
         DebugLog.d(TAG, "play");
 
-        VideoRunnable runnable = InstanceHolder.getInstance().getVideoRunnable();
-        if (runnable.getStatus() == VideoRunnable.STATUS.PAUSED) {
+        VideoDecoder decoder = InstanceHolder.getInstance().getVideoDecoder();
+        if (decoder.getStatus() == VideoDecoder.STATUS.PAUSED) {
             threadStart();
-        } else if (runnable.getStatus() == VideoRunnable.STATUS.VIDEO_END) {
-            runnable.release();
-            if (runnable.prepare(this.filePath)) {
+        } else if (decoder.getStatus() == VideoDecoder.STATUS.VIDEO_END) {
+            decoder.release();
+            if (decoder.prepare(this.filePath)) {
                 this.threadStart();
             }
         }
@@ -175,14 +175,6 @@ public class VideoController {
         DebugLog.d(TAG, "stop");
 
     }
-
-//    /**
-//     * seek
-//     */
-//    public void seek(long seekTo) {
-//        DebugLog.d(TAG, "seek");
-//
-//    }
 
     /**
      * speedUp
@@ -215,6 +207,28 @@ public class VideoController {
         DebugLog.d(TAG, "previousFrame");
     }
 
+    /**
+     * seekTo
+     *
+     * @param progress video progress
+     */
+    public void seekTo(int progress) {
+        DebugLog.d(TAG, "seekTo");
+        VideoDecoder decoder = InstanceHolder.getInstance().getVideoDecoder();
+        if (decoder.getStatus() == VideoDecoder.STATUS.SEEKING) {
+            return;
+        }
+        if (this.videoThread.isAlive()) {
+            try {
+                this.videoThread.join();
+            } catch (InterruptedException exception) {
+                exception.printStackTrace();
+            }
+        }
+
+        decoder.seekTo(progress);
+        this.threadStart();
+    }
     // ---------------------------------------------------------------------------------------------
     // private method
     // ---------------------------------------------------------------------------------------------
@@ -224,8 +238,8 @@ public class VideoController {
      */
     private void threadStart() {
         DebugLog.d(TAG, "threadStart");
-        VideoRunnable player = InstanceHolder.getInstance().getVideoRunnable();
-        this.videoThread = new Thread(player);
+        VideoDecoder decoder = InstanceHolder.getInstance().getVideoDecoder();
+        this.videoThread = new Thread(decoder);
         this.videoThread.start();
     }
 

@@ -14,7 +14,7 @@ import java.nio.ByteBuffer;
 import jp.mydns.dego.motionchecker.InstanceHolder;
 import jp.mydns.dego.motionchecker.Util.DebugLog;
 
-public class VideoRunnable implements Runnable {
+public class VideoDecoder implements Runnable {
 
     // ---------------------------------------------------------------------------------------------
     // inner class
@@ -40,7 +40,7 @@ public class VideoRunnable implements Runnable {
             this.renderTime = 0;
             this.isInterrupted = false;
 
-            this.startTime = VideoRunnable.this.extractor.getSampleTime();
+            this.startTime = VideoDecoder.this.extractor.getSampleTime();
             this.startTimeSys = System.nanoTime() / 1000;
             this.count = 0;
 
@@ -51,7 +51,7 @@ public class VideoRunnable implements Runnable {
         }
 
         void setRenderTime() {
-            this.renderTime = VideoRunnable.this.extractor.getSampleTime();
+            this.renderTime = VideoDecoder.this.extractor.getSampleTime();
             this.count++;
         }
 
@@ -63,8 +63,8 @@ public class VideoRunnable implements Runnable {
                 elapsed = (long) ((System.nanoTime() / 1000.0 - this.startTimeSys) * this.speed);
                 try {
                     Thread.sleep(1);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                } catch (InterruptedException exception) {
+                    exception.printStackTrace();
                     this.isInterrupted = true;
                 }
             } while (elapsed < waitTime);
@@ -89,7 +89,7 @@ public class VideoRunnable implements Runnable {
     // ---------------------------------------------------------------------------------------------
     // private constant values
     // ---------------------------------------------------------------------------------------------
-    private static final String TAG = "VideoRunnable";
+    private static final String TAG = "VideoDecoder";
     private static final String TAG_THREAD = "VideoThread";
     private static final String MIME_VIDEO = "video/";
 
@@ -103,17 +103,17 @@ public class VideoRunnable implements Runnable {
     private MediaCodec decoder;
     private MediaExtractor extractor;
     private VideoTimer videoTimer;
-    private VideoPlayerHandler handler;
+    private final VideoPlayerHandler handler;
 
     // ---------------------------------------------------------------------------------------------
     // constructor
     // ---------------------------------------------------------------------------------------------
 
     /**
-     * VideoRunnable
+     * VideoDecoder
      */
-    public VideoRunnable() {
-        DebugLog.d(TAG, "VideoRunnable");
+    public VideoDecoder() {
+        DebugLog.d(TAG, "VideoDecoder");
         this.videoStatus = STATUS.INIT;
         this.handler = new VideoPlayerHandler();
     }
@@ -150,8 +150,8 @@ public class VideoRunnable implements Runnable {
         this.extractor = new MediaExtractor();
         try {
             this.extractor.setDataSource(filePath);
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException exception) {
+            exception.printStackTrace();
             return false;
         }
 
@@ -162,8 +162,8 @@ public class VideoRunnable implements Runnable {
                 this.extractor.selectTrack(index);
                 try {
                     this.decoder = MediaCodec.createDecoderByType(mime);
-                } catch (IOException e) {
-                    e.printStackTrace();
+                } catch (IOException exception) {
+                    exception.printStackTrace();
                 }
 
                 long duration = format.getLong(MediaFormat.KEY_DURATION);
@@ -172,9 +172,9 @@ public class VideoRunnable implements Runnable {
                 try {
                     DebugLog.d(TAG, "format: " + format);
                     this.decoder.configure(format, this.surface, null, 0);
-                } catch (IllegalStateException e) {
-                    e.printStackTrace();
-                    DebugLog.e(TAG, "codec '" + mime + "' failed configuration." + e);
+                } catch (IllegalStateException exception) {
+                    exception.printStackTrace();
+                    DebugLog.e(TAG, "codec '" + mime + "' failed configuration." + exception);
                     return false;
                 }
             }
@@ -241,6 +241,19 @@ public class VideoRunnable implements Runnable {
 //                this.toPreviousFrame();
                 break;
         }
+    }
+
+    /**
+     * seekTo
+     *
+     * @param progress progress
+     */
+    public void seekTo(int progress) {
+        DebugLog.d(TAG, "seekTo(" + progress + ")");
+
+        this.decoder.flush();
+        this.extractor.seekTo(progress * 1000, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
+        this.setStatus(STATUS.SEEKING, true);
     }
 
     // ---------------------------------------------------------------------------------------------

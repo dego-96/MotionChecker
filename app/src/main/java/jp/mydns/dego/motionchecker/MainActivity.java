@@ -14,7 +14,7 @@ import jp.mydns.dego.motionchecker.Util.DebugLog;
 import jp.mydns.dego.motionchecker.Util.FilePathHelper;
 import jp.mydns.dego.motionchecker.Util.PermissionManager;
 import jp.mydns.dego.motionchecker.VideoPlayer.VideoController;
-import jp.mydns.dego.motionchecker.VideoPlayer.VideoRunnable;
+import jp.mydns.dego.motionchecker.VideoPlayer.VideoDecoder;
 import jp.mydns.dego.motionchecker.View.ViewController;
 
 public class MainActivity extends AppCompatActivity {
@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
             VideoController.VideoInfo info = InstanceHolder.getInstance().getVideoController().getVideoInfo();
             viewController.setSurfaceViewSize(info.getWidth(), info.getHeight(), info.getRotation());
         } else {
-            viewController.setVisibility(VideoRunnable.STATUS.INIT);
+            viewController.setVisibility(VideoDecoder.STATUS.INIT);
         }
     }
 
@@ -155,38 +155,29 @@ public class MainActivity extends AppCompatActivity {
 
         VideoController videoController = InstanceHolder.getInstance().getVideoController();
 
-        switch (button.getId()) {
-            case R.id.button_gallery:
-                videoSelect();
-                break;
-            case R.id.button_play:
-                VideoRunnable.STATUS status = InstanceHolder.getInstance().getVideoRunnable().getStatus();
-                if (status == VideoRunnable.STATUS.PLAYING) {
-                    videoController.pause();
-                } else if (status == VideoRunnable.STATUS.VIDEO_SELECTED ||
-                    status == VideoRunnable.STATUS.PAUSED ||
-                    status == VideoRunnable.STATUS.VIDEO_END
-                ) {
-                    videoController.play();
-                }
-                break;
-            case R.id.button_stop:
-                videoController.stop();
-                break;
-            case R.id.button_speed_up:
-                videoController.speedUp();
-                break;
-            case R.id.button_speed_down:
-                videoController.speedDown();
-                break;
-            case R.id.button_next_frame:
-                videoController.nextFrame();
-                break;
-            case R.id.button_previous_frame:
-                videoController.previousFrame();
-                break;
-            default:
-                break;
+        int id = button.getId();
+        if (id == R.id.button_gallery) {
+            videoSelect();
+        } else if (id == R.id.button_play) {
+            VideoDecoder.STATUS status = InstanceHolder.getInstance().getVideoDecoder().getStatus();
+            if (status == VideoDecoder.STATUS.PLAYING) {
+                videoController.pause();
+            } else if (status == VideoDecoder.STATUS.VIDEO_SELECTED ||
+                status == VideoDecoder.STATUS.PAUSED ||
+                status == VideoDecoder.STATUS.VIDEO_END
+            ) {
+                videoController.play();
+            }
+        } else if (id == R.id.button_stop) {
+            videoController.stop();
+        } else if (id == R.id.button_speed_up) {
+            videoController.speedUp();
+        } else if (id == R.id.button_speed_down) {
+            videoController.speedDown();
+        } else if (id == R.id.button_next_frame) {
+            videoController.nextFrame();
+        } else if (id == R.id.button_previous_frame) {
+            videoController.previousFrame();
         }
     }
 
@@ -250,11 +241,11 @@ public class MainActivity extends AppCompatActivity {
         String videoPath = FilePathHelper.getVideoPathFromUri(this, data);
 
         if (videoPath == null || "".equals(videoPath)) {
-            InstanceHolder.getInstance().getViewController().setVisibility(VideoRunnable.STATUS.INIT);
+            InstanceHolder.getInstance().getViewController().setVisibility(VideoDecoder.STATUS.INIT);
             Toast.makeText(getApplication(), getString(R.string.toast_no_video), Toast.LENGTH_SHORT).show();
         } else {
             DebugLog.d(TAG, "video path :" + videoPath);
-            InstanceHolder.getInstance().getViewController().setVisibility(VideoRunnable.STATUS.VIDEO_SELECTED);
+            InstanceHolder.getInstance().getViewController().setVisibility(VideoDecoder.STATUS.VIDEO_SELECTED);
             InstanceHolder.getInstance().getVideoController().setVideoPath(videoPath);
         }
     }

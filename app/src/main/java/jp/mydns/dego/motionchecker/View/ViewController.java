@@ -15,7 +15,7 @@ import java.util.Locale;
 import jp.mydns.dego.motionchecker.InstanceHolder;
 import jp.mydns.dego.motionchecker.R;
 import jp.mydns.dego.motionchecker.Util.DebugLog;
-import jp.mydns.dego.motionchecker.VideoPlayer.VideoRunnable;
+import jp.mydns.dego.motionchecker.VideoPlayer.VideoDecoder;
 
 public class ViewController {
 
@@ -31,7 +31,7 @@ public class ViewController {
     private View rootView;
     private Display display;
     private SparseArray<View> views;
-    private int[] viewIdList = {
+    private final int[] viewIdList = {
         R.id.video_surface_view,
         R.id.image_no_video,
         R.id.button_gallery,
@@ -127,7 +127,7 @@ public class ViewController {
      *
      * @param status video status
      */
-    public void setVisibility(VideoRunnable.STATUS status) {
+    public void setVisibility(VideoDecoder.STATUS status) {
         DebugLog.d(TAG, "setVisibility( " + status.name() + " )");
 
         if (this.rootView == null) {
@@ -251,14 +251,14 @@ public class ViewController {
      *
      * @param status video status
      */
-    private void setImageResource(VideoRunnable.STATUS status) {
+    private void setImageResource(VideoDecoder.STATUS status) {
         DebugLog.d(TAG, "setImageResource");
         ImageView playButton = (ImageView) this.getView(R.id.button_play);
 
         if (playButton != null) {
-            if (status == VideoRunnable.STATUS.PLAYING) {
+            if (status == VideoDecoder.STATUS.PLAYING) {
                 playButton.setImageResource(R.drawable.pause);
-            } else if (status == VideoRunnable.STATUS.PAUSED) {
+            } else if (status == VideoDecoder.STATUS.PAUSED) {
                 playButton.setImageResource(R.drawable.play);
             }
         } else {

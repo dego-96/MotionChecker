@@ -68,7 +68,7 @@
                     android:focusable="true"
                     android:onClick="onButtonClicked"
                     android:src="@drawable/button_previous_frame"
-                    android:visibility="visible" />
+                    android:visibility="invisible" />
 
                 <Space
                     android:layout_width="0dp"
@@ -144,7 +144,7 @@
 
             </LinearLayout>
 
-            <SeekBar
+            <jp.mydns.dego.motionchecker.View.VideoProgressBar
                 android:id="@+id/seek_bar_playtime"
                 android:layout_width="match_parent"
                 android:layout_height="20dp"

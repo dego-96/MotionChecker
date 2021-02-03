@@ -5,7 +5,7 @@ import android.app.Application;
 import jp.mydns.dego.motionchecker.Util.DebugLog;
 import jp.mydns.dego.motionchecker.Util.PermissionManager;
 import jp.mydns.dego.motionchecker.VideoPlayer.VideoController;
-import jp.mydns.dego.motionchecker.VideoPlayer.VideoRunnable;
+import jp.mydns.dego.motionchecker.VideoPlayer.VideoDecoder;
 import jp.mydns.dego.motionchecker.View.ViewController;
 
 public class InstanceHolder extends Application {
@@ -21,7 +21,7 @@ public class InstanceHolder extends Application {
     private static InstanceHolder instance = null;
     private ViewController viewController = null;
     private VideoController videoController = null;
-    private VideoRunnable videoRunnable = null;
+    private VideoDecoder videoDecoder = null;
     private PermissionManager permissionManager = null;
 
     // ---------------------------------------------------------------------------------------------
@@ -73,15 +73,15 @@ public class InstanceHolder extends Application {
     }
 
     /**
-     * getVideoRunnable
+     * getVideoDecoder
      *
-     * @return VideoRunnable
+     * @return VideoDecoder
      */
-    public VideoRunnable getVideoRunnable() {
-        if (this.videoRunnable == null) {
-            this.videoRunnable = new VideoRunnable();
+    public VideoDecoder getVideoDecoder() {
+        if (this.videoDecoder == null) {
+            this.videoDecoder = new VideoDecoder();
         }
-        return this.videoRunnable;
+        return this.videoDecoder;
     }
 
     /**
