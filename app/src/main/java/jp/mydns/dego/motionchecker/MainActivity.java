@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
             VideoController.VideoInfo info = InstanceHolder.getInstance().getVideoController().getVideoInfo();
             viewController.setSurfaceViewSize(info.getWidth(), info.getHeight(), info.getRotation());
         } else {
-            viewController.setVisibility(VideoDecoder.STATUS.INIT);
+            viewController.setVisibilities(VideoDecoder.STATUS.INIT);
         }
     }
 
@@ -241,11 +241,11 @@ public class MainActivity extends AppCompatActivity {
         String videoPath = FilePathHelper.getVideoPathFromUri(this, data);
 
         if (videoPath == null || "".equals(videoPath)) {
-            InstanceHolder.getInstance().getViewController().setVisibility(VideoDecoder.STATUS.INIT);
+            InstanceHolder.getInstance().getViewController().setVisibilities(VideoDecoder.STATUS.INIT);
             Toast.makeText(getApplication(), getString(R.string.toast_no_video), Toast.LENGTH_SHORT).show();
         } else {
             DebugLog.d(TAG, "video path :" + videoPath);
-            InstanceHolder.getInstance().getViewController().setVisibility(VideoDecoder.STATUS.VIDEO_SELECTED);
+            InstanceHolder.getInstance().getViewController().setVisibilities(VideoDecoder.STATUS.VIDEO_SELECTED);
             InstanceHolder.getInstance().getVideoController().setVideoPath(videoPath);
         }
     }

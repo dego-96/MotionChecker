@@ -41,14 +41,6 @@ public class VideoController {
     // ---------------------------------------------------------------------------------------------
     // constant values
     // ---------------------------------------------------------------------------------------------
-//    public static final double[] VIDEO_SPEEDS = {
-//        1.000,  // 1/1
-//        0.500,  // 1/2
-//        0.250,  // 1/4
-//        0.125,  // 1/8
-//        0.100,  // 1/10
-//    };
-
     private static final String TAG = "VideoController";
     private VideoInfo info;
 
@@ -57,6 +49,7 @@ public class VideoController {
     // ---------------------------------------------------------------------------------------------
     private String filePath;
     private Thread videoThread;
+    private PlaySpeedManager speedManager;
 
     // ---------------------------------------------------------------------------------------------
     // constructor
@@ -68,6 +61,7 @@ public class VideoController {
     public VideoController() {
         DebugLog.d(TAG, "VideoController");
         this.filePath = null;
+        this.speedManager = new PlaySpeedManager();
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -94,6 +88,8 @@ public class VideoController {
         this.info.width = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH));
         this.info.height = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT));
         this.info.rotation = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION));
+
+        this.speedManager.init();
     }
 
     /**
@@ -182,6 +178,9 @@ public class VideoController {
     public void speedUp() {
         DebugLog.d(TAG, "speedUp");
 
+        this.speedManager.speedUp();
+        InstanceHolder.getInstance().getViewController().updateSpeedUpDownViews();
+        InstanceHolder.getInstance().getVideoDecoder().setSpeed(this.speedManager.getSpeed());
     }
 
     /**
@@ -190,6 +189,9 @@ public class VideoController {
     public void speedDown() {
         DebugLog.d(TAG, "speedDown");
 
+        this.speedManager.speedDown();
+        InstanceHolder.getInstance().getViewController().updateSpeedUpDownViews();
+        InstanceHolder.getInstance().getVideoDecoder().setSpeed(this.speedManager.getSpeed());
     }
 
     /**
@@ -229,6 +231,16 @@ public class VideoController {
         decoder.seekTo(progress);
         this.threadStart();
     }
+
+    /**
+     * getSpeedLevel
+     *
+     * @return speedLevel
+     */
+    public int getSpeedLevel() {
+        return this.speedManager.getSpeedLevel();
+    }
+
     // ---------------------------------------------------------------------------------------------
     // private method
     // ---------------------------------------------------------------------------------------------

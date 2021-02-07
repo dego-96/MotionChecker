@@ -15,6 +15,7 @@ import java.util.Locale;
 import jp.mydns.dego.motionchecker.InstanceHolder;
 import jp.mydns.dego.motionchecker.R;
 import jp.mydns.dego.motionchecker.Util.DebugLog;
+import jp.mydns.dego.motionchecker.VideoPlayer.PlaySpeedManager;
 import jp.mydns.dego.motionchecker.VideoPlayer.VideoDecoder;
 
 public class ViewController {
@@ -44,6 +45,7 @@ public class ViewController {
         R.id.seek_bar_playtime,
         R.id.text_view_current_time,
         R.id.text_view_remain_time,
+        R.id.text_view_speed,
     };
     private final int[][] visibilityTable = {
         /* 0x00:VISIBLE,  0x04:INVISIBLE,  0x08:GONE */
@@ -53,13 +55,14 @@ public class ViewController {
         {0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00},   /* button_gallery */
         {0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   /* button_play */
         {0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   /* button_stop */
-        {0x08, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00},   /* button_speed_up */
+        {0x08, 0x04, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00},   /* button_speed_up */
         {0x08, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00},   /* button_speed_down */
         {0x08, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00},   /* button_next_frame */
         {0x08, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00},   /* button_previous_frame */
         {0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   /* seek_bar_playtime */
         {0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   /* text_view_current_time */
         {0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   /* text_view_remain_time */
+        {0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   /* text_view_speed */
     };
 
     // ---------------------------------------------------------------------------------------------
@@ -123,12 +126,12 @@ public class ViewController {
     }
 
     /**
-     * setVisibility
+     * setVisibilities
      *
      * @param status video status
      */
-    public void setVisibility(VideoDecoder.STATUS status) {
-        DebugLog.d(TAG, "setVisibility( " + status.name() + " )");
+    public void setVisibilities(VideoDecoder.STATUS status) {
+        DebugLog.d(TAG, "setVisibilities( " + status.name() + " )");
 
         if (this.rootView == null) {
             DebugLog.e(TAG, "root view is null.");
@@ -146,7 +149,12 @@ public class ViewController {
             }
         }
 
-        this.setImageResource(status);
+        if (status == VideoDecoder.STATUS.PLAYING) {
+            this.setImageResource(status);
+        } else if (status == VideoDecoder.STATUS.PAUSED) {
+            this.setImageResource(status);
+            this.updateSpeedUpDownViews();
+        }
     }
 
     /**
@@ -224,11 +232,44 @@ public class ViewController {
         ((TextView) this.getView(R.id.text_view_current_time)).setText(TimerFormat.format(new Date(progress)));
         int duration = seekBar.getMax();
         if (progress < duration) {
-            ((TextView) this.getView(R.id.text_view_remain_time)).setText(TimerFormat.format(new Date()));
+            ((TextView) this.getView(R.id.text_view_remain_time)).setText(TimerFormat.format(new Date(duration - progress)));
         } else {
             DebugLog.e(TAG, "progress value error.");
             ((TextView) this.getView(R.id.text_view_remain_time)).setText(InstanceHolder.getInstance().getText(R.string.remain_time_init));
         }
+    }
+
+    /**
+     * updateSpeedUpDownViews
+     */
+    public void updateSpeedUpDownViews() {
+        DebugLog.d(TAG, "updateSpeedUpDownViews");
+
+        ImageView speedUpImageView = (ImageView) this.getView(R.id.button_speed_up);
+        ImageView speedDownImageView = (ImageView) this.getView(R.id.button_speed_down);
+        TextView speedTextView = (TextView) this.getView(R.id.text_view_speed);
+        int speedLevel = InstanceHolder.getInstance().getVideoController().getSpeedLevel();
+
+        if (speedUpImageView == null ||
+            speedDownImageView == null ||
+            speedTextView == null) {
+            DebugLog.e(TAG, "get view error.");
+            return;
+        }
+
+        if (speedLevel == PlaySpeedManager.SPEED_LEVEL_MIN) {
+            speedUpImageView.setVisibility(View.VISIBLE);
+            speedDownImageView.setVisibility(View.INVISIBLE);
+        } else if (speedLevel == PlaySpeedManager.SPEED_LEVEL_MAX) {
+            speedUpImageView.setVisibility(View.INVISIBLE);
+            speedDownImageView.setVisibility(View.VISIBLE);
+        } else {
+            speedUpImageView.setVisibility(View.VISIBLE);
+            speedDownImageView.setVisibility(View.VISIBLE);
+        }
+
+        String[] speedText = InstanceHolder.getInstance().getResources().getStringArray(R.array.play_speed_text);
+        speedTextView.setText(speedText[speedLevel]);
     }
 
     // ---------------------------------------------------------------------------------------------

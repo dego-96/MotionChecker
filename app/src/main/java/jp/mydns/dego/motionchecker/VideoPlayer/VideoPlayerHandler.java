@@ -57,8 +57,8 @@ public class VideoPlayerHandler extends Handler {
 
         VideoDecoder.STATUS status = (VideoDecoder.STATUS) message.getData().getSerializable(MESSAGE_STATUS);
         if (status != null) {
-            DebugLog.d(TAG, "status : " + status.name() + " (" + status + ")");
-            viewController.setVisibility(status);
+            DebugLog.d(TAG, "status : " + status.name());
+            viewController.setVisibilities(status);
         }
     }
 }

@@ -24,7 +24,7 @@ public class VideoDecoder implements Runnable {
         long startTimeSys;
         long renderTime;
         long count;
-        double speed;
+        float speed;
         boolean isInterrupted;
 
         VideoTimer() {
@@ -32,7 +32,7 @@ public class VideoDecoder implements Runnable {
             this.startTimeSys = 0;
             this.renderTime = 0;
             this.count = 0;
-            this.speed = 1.0;
+            this.speed = 1.0f;
             this.isInterrupted = false;
         }
 
@@ -60,7 +60,7 @@ public class VideoDecoder implements Runnable {
             long waitTime = this.renderTime - this.startTime;
             do {
                 // 再生速度に合わせてシステム時間の経過スピードを変える
-                elapsed = (long) ((System.nanoTime() / 1000.0 - this.startTimeSys) * this.speed);
+                elapsed = (long) ((System.nanoTime() / 1000.0f - (float) this.startTimeSys) * this.speed);
                 try {
                     Thread.sleep(1);
                 } catch (InterruptedException exception) {
@@ -201,6 +201,15 @@ public class VideoDecoder implements Runnable {
         this.extractor.release();
     }
 
+    /**
+     * setSpeed
+     *
+     * @param speed video play speed
+     */
+    void setSpeed(float speed) {
+        this.videoTimer.speed = speed;
+    }
+
     // ---------------------------------------------------------------------------------------------
     // public method
     // ---------------------------------------------------------------------------------------------
@@ -272,7 +281,7 @@ public class VideoDecoder implements Runnable {
         if (visibility) {
             Context context = InstanceHolder.getInstance();
             if (Thread.currentThread().equals(context.getMainLooper().getThread())) {
-                InstanceHolder.getInstance().getViewController().setVisibility(status);
+                InstanceHolder.getInstance().getViewController().setVisibilities(status);
             } else {
                 this.sendMessage();
             }
@@ -377,7 +386,8 @@ public class VideoDecoder implements Runnable {
             ByteBuffer buffer = this.decoder.getInputBuffer(inIndex);
             int sampleSize = (buffer != null) ? this.extractor.readSampleData(buffer, 0) : -1;
             if (sampleSize >= 0) {
-                this.decoder.queueInputBuffer(inIndex, 0, sampleSize, this.extractor.getSampleTime(), 0);
+                long time = (long) ((float) this.extractor.getSampleTime() / this.videoTimer.speed);
+                this.decoder.queueInputBuffer(inIndex, 0, sampleSize, time, 0);
                 this.extractor.advance();
             } else {
                 DebugLog.d(TAG_THREAD, "InputBuffer BUFFER_FLAG_END_OF_STREAM");
@@ -410,7 +420,7 @@ public class VideoDecoder implements Runnable {
                 this.videoTimer.setRenderTime();
 
                 DebugLog.v(TAG_THREAD, "presentationTimeUs : " + info.presentationTimeUs);
-                this.sendMessage(info.presentationTimeUs);
+                this.sendMessage((long) ((float) info.presentationTimeUs * this.videoTimer.speed));
                 return true;
             }
         }

@@ -12,7 +12,13 @@
     <string name="content_description_previous_frame">To Previous Frame</string>
     <string name="current_time_init">00:00:000</string>
     <string name="remain_time_init">--:--:---</string>
-    <string name="play_speed_init">x1.0</string>
+    <string-array name="play_speed_text">
+        <item>x0.100</item>
+        <item>x0.125</item>
+        <item>x0.25</item>
+        <item>x0.50</item>
+        <item>x1.00</item>
+    </string-array>
 
     <!-- Toast -->
     <string name="toast_no_permission">動画を選択できません。</string>
