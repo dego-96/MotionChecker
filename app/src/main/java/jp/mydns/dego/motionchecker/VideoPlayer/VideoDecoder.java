@@ -75,15 +75,19 @@ public class VideoDecoder implements Runnable {
     // public constant values
     // ---------------------------------------------------------------------------------------------
     /* video status */
-    public enum STATUS {
+    public enum DecoderStatus {
         INIT,
-        VIDEO_SELECTED,
         PAUSED,
         PLAYING,
-        VIDEO_END,
         SEEKING,
         NEXT_FRAME,
         PREVIOUS_FRAME
+    }
+
+    public enum FramePosition {
+        START,
+        MID,
+        END
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -96,7 +100,9 @@ public class VideoDecoder implements Runnable {
     // ---------------------------------------------------------------------------------------------
     // private fields
     // ---------------------------------------------------------------------------------------------
-    private STATUS videoStatus;
+    private DecoderStatus status;
+    private FramePosition position;
+    private OnVideoChangeListener videoListener;
 
     private Surface surface;
 
@@ -114,7 +120,7 @@ public class VideoDecoder implements Runnable {
      */
     public VideoDecoder() {
         DebugLog.d(TAG, "VideoDecoder");
-        this.videoStatus = STATUS.INIT;
+        this.status = DecoderStatus.INIT;
         this.handler = new VideoPlayerHandler();
     }
 
@@ -132,9 +138,8 @@ public class VideoDecoder implements Runnable {
     boolean init(String filePath, Surface surface) {
         DebugLog.d(TAG, "init");
 
-        this.setStatus(STATUS.INIT, false);
+        this.setStatus(DecoderStatus.INIT, false);
         this.surface = surface;
-        this.videoTimer = new VideoTimer();
 
         return this.prepare(filePath);
     }
@@ -167,7 +172,7 @@ public class VideoDecoder implements Runnable {
                 }
 
                 long duration = format.getLong(MediaFormat.KEY_DURATION);
-                InstanceHolder.getInstance().getViewController().setDuration((int) (duration / 1000));
+                this.videoListener.onDurationChanged((int) (duration / 1000));
 
                 try {
                     DebugLog.d(TAG, "format: " + format);
@@ -182,13 +187,29 @@ public class VideoDecoder implements Runnable {
         if (this.decoder != null) {
             this.decoder.start();
         }
+        this.videoTimer = new VideoTimer();
+        this.position = null;
 
-        if (this.getStatus() == STATUS.INIT) {
-            this.setStatus(STATUS.VIDEO_SELECTED, true);
-        } else if (this.getStatus() == STATUS.VIDEO_END) {
-            this.setStatus(STATUS.PAUSED, true);
-        }
+        this.setStatus(DecoderStatus.PAUSED, true);
         return true;
+    }
+
+    /**
+     * getStatus
+     *
+     * @return video status
+     */
+    DecoderStatus getStatus() {
+        return this.status;
+    }
+
+    /**
+     * FramePosition
+     *
+     * @return frame position
+     */
+    FramePosition getFramePosition() {
+        return this.position;
     }
 
     /**
@@ -210,18 +231,32 @@ public class VideoDecoder implements Runnable {
         this.videoTimer.speed = speed;
     }
 
+    /**
+     * seekTo
+     *
+     * @param progress progress
+     */
+    void seekTo(int progress) {
+        DebugLog.d(TAG, "seekTo(" + progress + ")");
+
+        this.setStatus(DecoderStatus.SEEKING, true);
+        this.decoder.flush();
+        this.extractor.seekTo(progress * 1000, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
+    }
+
+    /**
+     * setOnVideoChangeListener
+     *
+     * @param listener video change listener
+     */
+    void setOnVideoChangeListener(OnVideoChangeListener listener) {
+        DebugLog.d(TAG, "setOnVideoChangeListener");
+        this.videoListener = listener;
+    }
+
     // ---------------------------------------------------------------------------------------------
     // public method
     // ---------------------------------------------------------------------------------------------
-
-    /**
-     * getStatus
-     *
-     * @return video status
-     */
-    public STATUS getStatus() {
-        return this.videoStatus;
-    }
 
     /**
      * run
@@ -238,10 +273,12 @@ public class VideoDecoder implements Runnable {
                 // Nothing to do.
                 break;
             case PAUSED:
-            case VIDEO_END:
-                this.play();
+                if (this.position == null) {
+                    this.nextFrame();
+                } else {
+                    this.play();
+                }
                 break;
-            case VIDEO_SELECTED:
             case NEXT_FRAME:
             case SEEKING:
                 this.nextFrame();
@@ -250,19 +287,6 @@ public class VideoDecoder implements Runnable {
 //                this.toPreviousFrame();
                 break;
         }
-    }
-
-    /**
-     * seekTo
-     *
-     * @param progress progress
-     */
-    public void seekTo(int progress) {
-        DebugLog.d(TAG, "seekTo(" + progress + ")");
-
-        this.decoder.flush();
-        this.extractor.seekTo(progress * 1000, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
-        this.setStatus(STATUS.SEEKING, true);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -274,14 +298,14 @@ public class VideoDecoder implements Runnable {
      *
      * @param status status
      */
-    private void setStatus(STATUS status, boolean visibility) {
-        DebugLog.d(TAG, "setStatus (" + this.videoStatus.name() + " => " + status.name() + ")");
-        this.videoStatus = status;
+    private void setStatus(DecoderStatus status, boolean visibility) {
+        DebugLog.d(TAG, "setStatus (" + this.status.name() + " => " + status.name() + ")");
+        this.status = status;
 
         if (visibility) {
             Context context = InstanceHolder.getInstance();
             if (Thread.currentThread().equals(context.getMainLooper().getThread())) {
-                InstanceHolder.getInstance().getViewController().setVisibilities(status);
+                this.videoListener.setVisibilities(status);
             } else {
                 this.sendMessage();
             }
@@ -308,7 +332,7 @@ public class VideoDecoder implements Runnable {
      * @param time_us time (microsecond)
      */
     private void sendMessage(long time_us) {
-        DebugLog.d(TAG, "sendMessage(" + time_us + ")");
+        DebugLog.d(TAG_THREAD, "sendMessage(" + time_us + ")");
 
         Bundle bundle = new Bundle();
         bundle.putLong(VideoPlayerHandler.MESSAGE_PROGRESS_US, time_us);
@@ -322,7 +346,7 @@ public class VideoDecoder implements Runnable {
      */
     private void play() {
         DebugLog.d(TAG_THREAD, "play");
-        this.setStatus(STATUS.PLAYING, true);
+        this.setStatus(DecoderStatus.PLAYING, true);
 
         MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
         boolean isEos = false;
@@ -338,11 +362,12 @@ public class VideoDecoder implements Runnable {
             // All decoded frames have been rendered, we can stop playing now
             if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
                 DebugLog.d(TAG_THREAD, "OutputBuffer BUFFER_FLAG_END_OF_STREAM");
-                this.setStatus(STATUS.VIDEO_END, true);
+                this.setStatus(DecoderStatus.PAUSED, true);
+                this.position = FramePosition.END;
                 return;
             }
         }
-        this.setStatus(STATUS.PAUSED, true);
+        this.setStatus(DecoderStatus.PAUSED, true);
     }
 
     /**
@@ -364,11 +389,12 @@ public class VideoDecoder implements Runnable {
             // 最後まで再生した場合
             if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
                 DebugLog.d(TAG_THREAD, "OutputBuffer BUFFER_FLAG_END_OF_STREAM");
-                this.setStatus(STATUS.VIDEO_END, true);
+                this.position = FramePosition.END;
+                this.setStatus(DecoderStatus.PAUSED, true);
                 return;
             }
             if (render) {
-                this.setStatus(STATUS.PAUSED, true);
+                this.setStatus(DecoderStatus.PAUSED, true);
                 return;
             }
         }
@@ -417,6 +443,11 @@ public class VideoDecoder implements Runnable {
                 this.videoTimer.waitNext();
 
                 this.decoder.releaseOutputBuffer(outIndex, true);
+                if (this.position == null) {
+                    this.position = FramePosition.START;
+                } else if (this.position == FramePosition.START) {
+                    this.position = FramePosition.MID;
+                }
                 this.videoTimer.setRenderTime();
 
                 DebugLog.v(TAG_THREAD, "presentationTimeUs : " + info.presentationTimeUs);

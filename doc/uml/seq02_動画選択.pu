@@ -1,0 +1,140 @@
+@startuml video_select
+
+title 動画選択時の処理
+
+actor User
+participant GalleryApp as Gallery
+participant MainActivity as Main
+participant VideoController as Controller
+participant ViewController as Views
+participant VideoDecoder as Decoder
+participant VideoThread as Thread
+participant PermissionManager as Permission
+participant VideoSurfaceView as Surface
+participant VideoProgressBar as Progress
+participant VideoPlayerHandler as Handler
+
+User ->> Main : onButtonClicked(動画選択ボタン)
+Main -> Main ++ : videoSelect
+Main -> Permission ++ : getPermission
+return 外部ストレージのアクセス権限によって分岐
+
+alt アクセス権限なし、許可しない
+    Main -> Permission ++ : requestPermission
+    Permission -> Permission : shouldShowRequestPermissionRationale
+    User <- Permission -- : アクセス権限を要求
+    deactivate Main
+    Main -> Main ++ : onPause
+    deactivate Main
+    User ->> Main ++ : onRequestPermissionsResult(許可しない)
+    Main -> User -- : Toast表示
+    Main -> Main ++ : onResume
+    deactivate Main
+else アクセス権限なし、常に許可しない
+    Main -> Permission ++ : requestPermission
+    activate Main
+    Permission -> Permission : shouldShowRequestPermissionRationale
+    Main <- Permission -- : 常に許可しない
+    Main -> User -- : Toast表示
+else アクセス権限なし、許可
+    Main -> Permission ++ : requestPermission
+    Permission -> Permission : shouldShowRequestPermissionRationale
+    User <- Permission -- : アクセス権限を要求
+    Main -> Main ++ : onPause
+    deactivate Main
+    User ->> Main ++ : onRequestPermissionsResult(許可)
+    Main -> Main : videoSelect
+    Main -> Controller ++ : videoSelecting
+    Controller -> Decoder : join
+    deactivate Controller
+    Main -> Main -- : startActivityForResult
+    Main -> Main ++ : onPause
+    deactivate Main
+    Main -> Main ++ : onStop
+    deactivate Main
+    Gallery <- Main : ギャラリーアプリ起動
+else アクセス権限あり
+    Main -> Controller ++ : videoSelecting
+    activate Main
+    Controller -> Decoder : join
+    deactivate Controller
+    Main -> Main -- : startActivityForResult
+    Main -> Main ++ : onPause
+    deactivate Main
+    Main -> Main ++ : onStop
+    deactivate Main
+    
+    Gallery <- Main : ギャラリーアプリ起動
+end
+
+== 以降、外部ストレージへのアクセス権限ありの場合の動作 ==
+
+alt 動画を選択せずにキャンセル
+    Gallery -> Main ++ : onActivityResult
+    Main -> Main : requestGalleryResult
+    Main -> Permission ++ : getPermission
+    return 許可
+    User <- Main -- : Toast表示
+    Main -> Main ++ : onStart
+    Main -> Main : hideSystemUI
+    Main -> Controller ++ : setVisibilities
+    Controller -> Views : bindRootView
+    Controller -> Views : setVisibilities
+    deactivate Controller
+    deactivate Main
+    Main -> Main ++ : onResume
+    deactivate Main
+else 動画選択時
+    Gallery -> Main ++ : onActivityResult(RESULT_OK)
+    Main -> Main : requestGalleryResult
+    Main -> Permission ++ : getPermission
+    return 許可
+    Main -> Main : getVideoPathFromUri
+    Main -> Controller ++ : setVideoPath
+    deactivate Controller
+    deactivate Main
+
+    Main -> Main ++ : onStart
+    Main -> Main : hideSystemUI
+    Main -> Controller ++ : viewSetup
+    Controller -> Views : bindRootView
+    Controller -> Views ++ : bindDisplay
+    Views -> Surface : setDisplay
+    deactivate Views
+    Controller -> Views : setSurfaceViewSize
+    deactivate Controller
+    deactivate Main
+    Main -> Main ++ : onResume
+    deactivate Main
+    Main -> Surface ++ : surfaceCreated
+    Surface -> Controller ++ : videoSetup
+    Controller -> Decoder ++ : init
+    Decoder -> Decoder : setStatus(INIT)
+    hnote over Decoder
+    INIT
+    end note
+    Decoder -> Decoder : prepare
+    Controller <- Decoder : onDurationChanged
+    Controller -> Views : setDuration
+    Decoder -> Decoder : setStatus(PAUSED)
+    hnote over Decoder
+    PAUSED
+    end note
+    Controller <- Decoder : setVisibilities
+    Controller -> Views : setVisibilities
+    deactivate Decoder
+    Controller -> Thread ** : インスタンス生成
+    Controller -> Thread ++ : start
+    deactivate Surface
+    deactivate Controller
+    Thread -> Thread : nextFrame
+    loop 未描画
+    Thread -> Thread : queueInput
+    Thread -> Thread : queueOutput
+    end
+    Thread -> Thread : 描画完了
+    Thread -> Thread : position = START
+    deactivate Thread
+end
+
+@enduml

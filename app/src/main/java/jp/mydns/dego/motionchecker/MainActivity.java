@@ -1,11 +1,12 @@
 package jp.mydns.dego.motionchecker;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
@@ -15,7 +16,6 @@ import jp.mydns.dego.motionchecker.Util.FilePathHelper;
 import jp.mydns.dego.motionchecker.Util.PermissionManager;
 import jp.mydns.dego.motionchecker.VideoPlayer.VideoController;
 import jp.mydns.dego.motionchecker.VideoPlayer.VideoDecoder;
-import jp.mydns.dego.motionchecker.View.ViewController;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -23,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
     // Constant Value
     // ---------------------------------------------------------------------------------------------
     private static final String TAG = "MainActivity";
+
     public static final int REQUEST_PERMISSION_READ_EXTERNAL_STORAGE = 10;
     public static final int REQUEST_GALLERY = 20;
 
@@ -44,7 +45,6 @@ public class MainActivity extends AppCompatActivity {
         DebugLog.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        this.hideSystemUI();
     }
 
     /**
@@ -54,16 +54,16 @@ public class MainActivity extends AppCompatActivity {
     public void onStart() {
         DebugLog.d(TAG, "onStart");
         super.onStart();
+        this.hideSystemUI();
 
-        ViewController viewController = InstanceHolder.getInstance().getViewController();
         VideoController videoController = InstanceHolder.getInstance().getVideoController();
-        viewController.bindRootView(this.getWindow().getDecorView());
-        viewController.bindDisplay(this.getWindowManager().getDefaultDisplay());
         if (videoController.hasVideoPath()) {
-            VideoController.VideoInfo info = InstanceHolder.getInstance().getVideoController().getVideoInfo();
-            viewController.setSurfaceViewSize(info.getWidth(), info.getHeight(), info.getRotation());
+            videoController.viewSetup(
+                this.getWindow().getDecorView(),
+                this.getWindowManager().getDefaultDisplay()
+            );
         } else {
-            viewController.setVisibilities(VideoDecoder.STATUS.INIT);
+            videoController.setVisibilities(this.getWindow().getDecorView(), VideoDecoder.DecoderStatus.INIT);
         }
     }
 
@@ -74,15 +74,6 @@ public class MainActivity extends AppCompatActivity {
     public void onResume() {
         DebugLog.d(TAG, "onResume");
         super.onResume();
-
-        PermissionManager permissionManager = InstanceHolder.getInstance().getPermissionManager();
-        if (!permissionManager.getPermission(Manifest.permission.READ_EXTERNAL_STORAGE) &&
-            permissionManager.checkReadExternalStorage(this) == PermissionManager.PermissionResult.DENIED) {
-            ActivityCompat.requestPermissions(
-                this,
-                new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                REQUEST_PERMISSION_READ_EXTERNAL_STORAGE);
-        }
     }
 
     /**
@@ -110,8 +101,6 @@ public class MainActivity extends AppCompatActivity {
     public void onDestroy() {
         DebugLog.d(TAG, "onDestroy");
         super.onDestroy();
-
-        InstanceHolder.getInstance().getPermissionManager().clearDenyCount();
     }
 
     /**
@@ -126,18 +115,37 @@ public class MainActivity extends AppCompatActivity {
         DebugLog.d(TAG, "onActivityResult");
         super.onActivityResult(requestCode, resultCode, data);
 
-        switch (requestCode) {
-            case REQUEST_PERMISSION_READ_EXTERNAL_STORAGE:
-                requestPermission(resultCode);
-                break;
+        if (requestCode == REQUEST_GALLERY) {
+            requestGalleryResult(resultCode, data);
+        } else {
+            DebugLog.w(TAG, "unknown request code");
+        }
+    }
 
-            case REQUEST_GALLERY:
-                requestGalleryResult(resultCode, data);
-                break;
-
-            default:
-                DebugLog.w(TAG, "unknown request code");
-                break;
+    /**
+     * onRequestPermissionsResult
+     *
+     * @param requestCode  request code
+     * @param permissions  permissions
+     * @param grantResults grant result
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        DebugLog.d(TAG, "onRequestPermissionsResult");
+        if (requestCode == REQUEST_PERMISSION_READ_EXTERNAL_STORAGE) {
+            if (permissions.length <= 0 ||
+                !Manifest.permission.READ_EXTERNAL_STORAGE.equals(permissions[0]) ||
+                grantResults.length <= 0 ||
+                grantResults[0] == PackageManager.PERMISSION_DENIED
+            ) {
+                Toast.makeText(
+                    this,
+                    this.getString(R.string.toast_no_permission),
+                    Toast.LENGTH_LONG
+                ).show();
+            } else {
+                this.videoSelect();
+            }
         }
     }
 
@@ -157,17 +165,9 @@ public class MainActivity extends AppCompatActivity {
 
         int id = button.getId();
         if (id == R.id.button_gallery) {
-            videoSelect();
+            this.videoSelect();
         } else if (id == R.id.button_play) {
-            VideoDecoder.STATUS status = InstanceHolder.getInstance().getVideoDecoder().getStatus();
-            if (status == VideoDecoder.STATUS.PLAYING) {
-                videoController.pause();
-            } else if (status == VideoDecoder.STATUS.VIDEO_SELECTED ||
-                status == VideoDecoder.STATUS.PAUSED ||
-                status == VideoDecoder.STATUS.VIDEO_END
-            ) {
-                videoController.play();
-            }
+            videoController.playOrPause();
         } else if (id == R.id.button_stop) {
             videoController.stop();
         } else if (id == R.id.button_speed_up) {
@@ -198,28 +198,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * requestPermission
-     *
-     * @param resultCode result code
-     */
-    private void requestPermission(int resultCode) {
-        DebugLog.d(TAG, "requestPermission");
-        if (resultCode != Activity.RESULT_OK) {
-            DebugLog.w(TAG, "Result code is not OK.");
-            return;
-        }
-
-        if (InstanceHolder.getInstance().getPermissionManager()
-            .checkReadExternalStorage(this) != PermissionManager.PermissionResult.GRANTED) {
-            Toast.makeText(
-                this,
-                getString(R.string.toast_no_permission),
-                Toast.LENGTH_SHORT
-            ).show();
-        }
-    }
-
-    /**
      * requestGalleryResult
      *
      * @param resultCode result code
@@ -229,7 +207,8 @@ public class MainActivity extends AppCompatActivity {
         DebugLog.d(TAG, "requestGalleryResult");
 
         if (resultCode != Activity.RESULT_OK) {
-            DebugLog.w(TAG, "Result code is not OK.");
+            DebugLog.i(TAG, "Result code is not OK.");
+            Toast.makeText(getApplication(), getString(R.string.toast_no_video), Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -238,15 +217,14 @@ public class MainActivity extends AppCompatActivity {
             DebugLog.e(TAG, "Can not read external storage.");
             return;
         }
-        String videoPath = FilePathHelper.getVideoPathFromUri(this, data);
 
+        String videoPath = FilePathHelper.getVideoPathFromUri(this, data);
+        VideoController videoController = InstanceHolder.getInstance().getVideoController();
         if (videoPath == null || "".equals(videoPath)) {
-            InstanceHolder.getInstance().getViewController().setVisibilities(VideoDecoder.STATUS.INIT);
             Toast.makeText(getApplication(), getString(R.string.toast_no_video), Toast.LENGTH_SHORT).show();
         } else {
             DebugLog.d(TAG, "video path :" + videoPath);
-            InstanceHolder.getInstance().getViewController().setVisibilities(VideoDecoder.STATUS.VIDEO_SELECTED);
-            InstanceHolder.getInstance().getVideoController().setVideoPath(videoPath);
+            videoController.setVideoPath(videoPath);
         }
     }
 
@@ -254,18 +232,23 @@ public class MainActivity extends AppCompatActivity {
      * videoSelect
      */
     private void videoSelect() {
-        DebugLog.d(TAG, "onVideoSelectButtonClicked");
-        if (InstanceHolder.getInstance().getPermissionManager()
-            .getPermission(Manifest.permission.READ_EXTERNAL_STORAGE)) {
+        DebugLog.d(TAG, "videoSelect");
+
+        PermissionManager permissionManager = InstanceHolder.getInstance().getPermissionManager();
+
+        if (permissionManager.getPermission(Manifest.permission.READ_EXTERNAL_STORAGE)) {
+            InstanceHolder.getInstance().getVideoController().videoSelecting();
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("video/*");
             startActivityForResult(intent, REQUEST_GALLERY);
         } else {
-            ActivityCompat.requestPermissions(
+            if (!permissionManager.requestPermission(
                 this,
-                new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                REQUEST_PERMISSION_READ_EXTERNAL_STORAGE);
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                REQUEST_PERMISSION_READ_EXTERNAL_STORAGE)) {
+                Toast.makeText(this, getString(R.string.toast_no_permission), Toast.LENGTH_LONG).show();
+            }
         }
     }
 

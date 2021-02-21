@@ -5,7 +5,6 @@ import android.os.Message;
 
 import jp.mydns.dego.motionchecker.InstanceHolder;
 import jp.mydns.dego.motionchecker.Util.DebugLog;
-import jp.mydns.dego.motionchecker.View.ViewController;
 
 public class VideoPlayerHandler extends Handler {
 
@@ -47,18 +46,18 @@ public class VideoPlayerHandler extends Handler {
     public void handleMessage(Message message) {
         DebugLog.d(TAG, "handleMessage");
 
-        ViewController viewController = InstanceHolder.getInstance().getViewController();
+        VideoController videoController = InstanceHolder.getInstance().getVideoController();
 
         long time_us = message.getData().getLong(MESSAGE_PROGRESS_US);
         DebugLog.v(TAG, "progress time (us) : " + time_us);
         if (time_us >= 0) {
-            viewController.setProgress((int) (time_us / 1000));
+            videoController.setProgress((int) (time_us / 1000));
         }
 
-        VideoDecoder.STATUS status = (VideoDecoder.STATUS) message.getData().getSerializable(MESSAGE_STATUS);
+        VideoDecoder.DecoderStatus status = (VideoDecoder.DecoderStatus) message.getData().getSerializable(MESSAGE_STATUS);
         if (status != null) {
             DebugLog.d(TAG, "status : " + status.name());
-            viewController.setVisibilities(status);
+            videoController.setVisibilities(status);
         }
     }
 }

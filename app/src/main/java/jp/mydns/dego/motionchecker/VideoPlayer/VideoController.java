@@ -1,11 +1,13 @@
 package jp.mydns.dego.motionchecker.VideoPlayer;
 
 import android.media.MediaMetadataRetriever;
+import android.view.Display;
 import android.view.Surface;
+import android.view.View;
 
 import jp.mydns.dego.motionchecker.BuildConfig;
-import jp.mydns.dego.motionchecker.InstanceHolder;
 import jp.mydns.dego.motionchecker.Util.DebugLog;
+import jp.mydns.dego.motionchecker.View.ViewController;
 
 public class VideoController {
 
@@ -24,18 +26,6 @@ public class VideoController {
             this.duration = 0;
             this.rotation = 0;
         }
-
-        public int getWidth() {
-            return this.width;
-        }
-
-        public int getHeight() {
-            return this.height;
-        }
-
-        public int getRotation() {
-            return this.rotation;
-        }
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -47,9 +37,11 @@ public class VideoController {
     // ---------------------------------------------------------------------------------------------
     // private fields
     // ---------------------------------------------------------------------------------------------
+    private final ViewController viewController;
+    private final VideoDecoder decoder;
+    private final PlaySpeedManager speedManager;
     private String filePath;
     private Thread videoThread;
-    private PlaySpeedManager speedManager;
 
     // ---------------------------------------------------------------------------------------------
     // constructor
@@ -61,12 +53,85 @@ public class VideoController {
     public VideoController() {
         DebugLog.d(TAG, "VideoController");
         this.filePath = null;
+        this.viewController = new ViewController();
+        this.decoder = new VideoDecoder();
         this.speedManager = new PlaySpeedManager();
+
+        this.decoder.setOnVideoChangeListener(new OnVideoChangeListener() {
+            @Override
+            public void onDurationChanged(int duration) {
+                viewController.setDuration(duration);
+            }
+
+            @Override
+            public void setVisibilities(VideoDecoder.DecoderStatus status) {
+                viewController.setVisibilities(status);
+            }
+        });
     }
 
     // ---------------------------------------------------------------------------------------------
     // public method
     // ---------------------------------------------------------------------------------------------
+
+    /**
+     * viewSetup
+     *
+     * @param rootView root view
+     * @param display  display
+     */
+    public void viewSetup(View rootView, Display display) {
+        DebugLog.d(TAG, "viewSetup");
+        this.viewController.bindRootView(rootView);
+        this.viewController.bindDisplay(display);
+        this.viewController.setSurfaceViewSize(this.info.width, this.info.height, this.info.rotation);
+    }
+
+    /**
+     * setVisibilities
+     *
+     * @param status video status
+     */
+    public void setVisibilities(VideoDecoder.DecoderStatus status) {
+        DebugLog.d(TAG, "setVisibilities");
+        this.viewController.setVisibilities(status);
+    }
+
+    /**
+     * setVisibilities
+     *
+     * @param rootView root view
+     * @param status   decoder status
+     */
+    public void setVisibilities(View rootView, VideoDecoder.DecoderStatus status) {
+        DebugLog.d(TAG, "setVisibilities");
+        this.viewController.bindRootView(rootView);
+        this.setVisibilities(status);
+    }
+
+    /**
+     * setProgress
+     *
+     * @param progress video progress
+     */
+    public void setProgress(int progress) {
+        DebugLog.d(TAG, "setProgress");
+        this.viewController.setProgress(progress);
+    }
+
+    /**
+     * videoSelecting
+     */
+    public void videoSelecting() {
+        DebugLog.d(TAG, "videoSelecting");
+        if (this.videoThread != null && this.videoThread.isAlive()) {
+            try {
+                this.videoThread.join();
+            } catch (InterruptedException exception) {
+                exception.printStackTrace();
+            }
+        }
+    }
 
     /**
      * setVideoPath
@@ -109,22 +174,11 @@ public class VideoController {
             return;
         }
 
-        VideoDecoder decoder = InstanceHolder.getInstance().getVideoDecoder();
-        if (this.filePath != null && surface != null && decoder.getStatus() == VideoDecoder.STATUS.INIT) {
-            if (decoder.init(this.filePath, surface)) {
+        if (this.filePath != null && surface != null) {
+            if (this.decoder.init(this.filePath, surface)) {
                 this.threadStart();
             }
         }
-    }
-
-
-    /**
-     * getVideoInfo
-     *
-     * @return video meta data
-     */
-    public VideoInfo getVideoInfo() {
-        return this.info;
     }
 
     /**
@@ -137,30 +191,16 @@ public class VideoController {
     }
 
     /**
-     * play
+     * playOrPause
      */
-    public void play() {
-        DebugLog.d(TAG, "play");
+    public void playOrPause() {
+        DebugLog.d(TAG, "playOrPause");
 
-        VideoDecoder decoder = InstanceHolder.getInstance().getVideoDecoder();
-        if (decoder.getStatus() == VideoDecoder.STATUS.PAUSED) {
-            threadStart();
-        } else if (decoder.getStatus() == VideoDecoder.STATUS.VIDEO_END) {
-            decoder.release();
-            if (decoder.prepare(this.filePath)) {
-                this.threadStart();
-            }
-        }
-    }
-
-    /**
-     * pause
-     */
-    public void pause() {
-        DebugLog.d(TAG, "pause");
-
-        if (this.videoThread != null && this.videoThread.isAlive()) {
-            this.videoThread.interrupt();
+        VideoDecoder.DecoderStatus status = this.decoder.getStatus();
+        if (status == VideoDecoder.DecoderStatus.PLAYING) {
+            this.pause();
+        } else if (status == VideoDecoder.DecoderStatus.PAUSED) {
+            this.play();
         }
     }
 
@@ -179,8 +219,8 @@ public class VideoController {
         DebugLog.d(TAG, "speedUp");
 
         this.speedManager.speedUp();
-        InstanceHolder.getInstance().getViewController().updateSpeedUpDownViews();
-        InstanceHolder.getInstance().getVideoDecoder().setSpeed(this.speedManager.getSpeed());
+        this.viewController.updateSpeedUpDownViews();
+        this.decoder.setSpeed(this.speedManager.getSpeed());
     }
 
     /**
@@ -190,8 +230,8 @@ public class VideoController {
         DebugLog.d(TAG, "speedDown");
 
         this.speedManager.speedDown();
-        InstanceHolder.getInstance().getViewController().updateSpeedUpDownViews();
-        InstanceHolder.getInstance().getVideoDecoder().setSpeed(this.speedManager.getSpeed());
+        this.viewController.updateSpeedUpDownViews();
+        this.decoder.setSpeed(this.speedManager.getSpeed());
     }
 
     /**
@@ -216,8 +256,7 @@ public class VideoController {
      */
     public void seekTo(int progress) {
         DebugLog.d(TAG, "seekTo");
-        VideoDecoder decoder = InstanceHolder.getInstance().getVideoDecoder();
-        if (decoder.getStatus() == VideoDecoder.STATUS.SEEKING) {
+        if (decoder.getStatus() == VideoDecoder.DecoderStatus.SEEKING) {
             return;
         }
         if (this.videoThread.isAlive()) {
@@ -228,7 +267,7 @@ public class VideoController {
             }
         }
 
-        decoder.seekTo(progress);
+        this.decoder.seekTo(progress);
         this.threadStart();
     }
 
@@ -246,12 +285,38 @@ public class VideoController {
     // ---------------------------------------------------------------------------------------------
 
     /**
+     * play
+     */
+    private void play() {
+        DebugLog.d(TAG, "play");
+
+        if (this.decoder.getFramePosition() == VideoDecoder.FramePosition.END) {
+            this.decoder.release();
+            if (this.decoder.prepare(this.filePath)) {
+                this.threadStart();
+            }
+        } else {
+            threadStart();
+        }
+    }
+
+    /**
+     * pause
+     */
+    private void pause() {
+        DebugLog.d(TAG, "pause");
+
+        if (this.videoThread != null && this.videoThread.isAlive()) {
+            this.videoThread.interrupt();
+        }
+    }
+
+    /**
      * threadStart
      */
     private void threadStart() {
         DebugLog.d(TAG, "threadStart");
-        VideoDecoder decoder = InstanceHolder.getInstance().getVideoDecoder();
-        this.videoThread = new Thread(decoder);
+        this.videoThread = new Thread(this.decoder);
         this.videoThread.start();
     }
 

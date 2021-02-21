@@ -2,9 +2,13 @@ package jp.mydns.dego.motionchecker.Util;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.pm.PackageManager;
 
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
+import jp.mydns.dego.motionchecker.InstanceHolder;
 
 public class PermissionManager {
 
@@ -12,80 +16,21 @@ public class PermissionManager {
     // Constant Value
     // ---------------------------------------------------------------------------------------------
     private static final String TAG = "PermissionManager";
-    private static final int PERMISSIONS_COUNT = 2;
-    private static final int DENY_COUNT_MAX = 3;
-    private static final int PERMISSION_INDEX_READ_EXTERNAL_STORAGE = 0;
-//    private static final int PERMISSION_INDEX_INTERNET = 1;
-
-    public enum PermissionResult {
-        GRANTED,
-        DENIED,
-        BAN,
-    }
 
     // ---------------------------------------------------------------------------------------------
     // Private Fields
     // ---------------------------------------------------------------------------------------------
-    private int[] permissionDenyCount;
-
-    private boolean canReadExternalStorage;
-    private boolean canInternet;
 
     // ---------------------------------------------------------------------------------------------
     // Constructor
     // ---------------------------------------------------------------------------------------------
     public PermissionManager() {
         DebugLog.d(TAG, "PermissionManager");
-        this.canReadExternalStorage = false;
-        this.canInternet = false;
-
-        this.permissionDenyCount = new int[PERMISSIONS_COUNT];
-    }
-
-    // ---------------------------------------------------------------------------------------------
-    // Static Method
-    // ---------------------------------------------------------------------------------------------
-
-    /**
-     * clearDenyCount
-     */
-    public void clearDenyCount() {
-        for (int index = 0; index < permissionDenyCount.length; index++) {
-            permissionDenyCount[index] = 0;
-        }
     }
 
     // ---------------------------------------------------------------------------------------------
     // Public Method
     // ---------------------------------------------------------------------------------------------
-
-    /**
-     * checkReadExternalStorage
-     *
-     * @param context application context
-     * @return check result
-     */
-    public PermissionResult checkReadExternalStorage(Activity context) {
-        DebugLog.d(TAG, "checkReadExternalStorage");
-
-        if (permissionDenyCount[PERMISSION_INDEX_READ_EXTERNAL_STORAGE] > DENY_COUNT_MAX) {
-            DebugLog.e(TAG, "Permission is denied " + DENY_COUNT_MAX + " times or more.");
-            return PermissionResult.BAN;
-        }
-
-        int permission = ContextCompat.checkSelfPermission(
-            context.getApplicationContext(),
-            Manifest.permission.READ_EXTERNAL_STORAGE
-        );
-
-        this.canReadExternalStorage = (permission == PackageManager.PERMISSION_GRANTED);
-        if (this.canReadExternalStorage) {
-            return PermissionResult.GRANTED;
-        } else {
-            permissionDenyCount[PERMISSION_INDEX_READ_EXTERNAL_STORAGE]++;
-            return PermissionResult.DENIED;
-        }
-    }
 
     /**
      * getPermission
@@ -95,14 +40,40 @@ public class PermissionManager {
      */
     public boolean getPermission(String permission) {
         DebugLog.d(TAG, "getPermission");
+        Context context = InstanceHolder.getInstance().getApplicationContext();
+        int result;
         switch (permission) {
             case Manifest.permission.READ_EXTERNAL_STORAGE:
-                return this.canReadExternalStorage;
+                result = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE);
+                return (result == PackageManager.PERMISSION_GRANTED);
             case Manifest.permission.INTERNET:
-                return this.canInternet;
+                result = ContextCompat.checkSelfPermission(context, Manifest.permission.INTERNET);
+                return (result == PackageManager.PERMISSION_GRANTED);
             default:
                 return false;
         }
+    }
+
+    /**
+     * requestPermission
+     *
+     * @param activity    activity
+     * @param permission  permission
+     * @param requestCode request code
+     * @return is requested
+     */
+    public boolean requestPermission(Activity activity, String permission, int requestCode) {
+        DebugLog.d(TAG, "requestPermission");
+
+        if (ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)) {
+            ActivityCompat.requestPermissions(
+                activity,
+                new String[]{permission},
+                requestCode);
+            return true;
+        }
+        DebugLog.i(TAG, "can not show request permission dialog");
+        return false;
     }
 
     // ---------------------------------------------------------------------------------------------

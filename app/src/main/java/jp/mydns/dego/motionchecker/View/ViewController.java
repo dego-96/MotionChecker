@@ -49,20 +49,20 @@ public class ViewController {
     };
     private final int[][] visibilityTable = {
         /* 0x00:VISIBLE,  0x04:INVISIBLE,  0x08:GONE */
-        /*INIT  SEL PAUSE  PLAY   END  SEEK  NEXT  PREV */
-        {0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   /* video_surface_view */
-        {0x00, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08},   /* image_no_video */
-        {0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00},   /* button_gallery */
-        {0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   /* button_play */
-        {0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   /* button_stop */
-        {0x08, 0x04, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00},   /* button_speed_up */
-        {0x08, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00},   /* button_speed_down */
-        {0x08, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00},   /* button_next_frame */
-        {0x08, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00},   /* button_previous_frame */
-        {0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   /* seek_bar_playtime */
-        {0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   /* text_view_current_time */
-        {0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   /* text_view_remain_time */
-        {0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   /* text_view_speed */
+        /*INIT PAUSE PLAY  SEEK  NEXT  PREV */
+        {0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   /* video_surface_view */
+        {0x00, 0x08, 0x08, 0x08, 0x08, 0x08},   /* image_no_video */
+        {0x00, 0x00, 0x04, 0x00, 0x00, 0x00},   /* button_gallery */
+        {0x08, 0x00, 0x00, 0x00, 0x00, 0x00},   /* button_play */
+        {0x08, 0x00, 0x00, 0x00, 0x00, 0x00},   /* button_stop */
+        {0x08, 0x00, 0x04, 0x00, 0x00, 0x00},   /* button_speed_up */
+        {0x08, 0x00, 0x04, 0x00, 0x00, 0x00},   /* button_speed_down */
+        {0x08, 0x00, 0x04, 0x00, 0x00, 0x00},   /* button_next_frame */
+        {0x08, 0x00, 0x04, 0x00, 0x00, 0x00},   /* button_previous_frame */
+        {0x08, 0x00, 0x00, 0x00, 0x00, 0x00},   /* seek_bar_playtime */
+        {0x08, 0x00, 0x00, 0x00, 0x00, 0x00},   /* text_view_current_time */
+        {0x08, 0x00, 0x00, 0x00, 0x00, 0x00},   /* text_view_remain_time */
+        {0x08, 0x00, 0x00, 0x00, 0x00, 0x00},   /* text_view_speed */
     };
 
     // ---------------------------------------------------------------------------------------------
@@ -120,8 +120,7 @@ public class ViewController {
         this.display = display;
 
         if (this.views != null) {
-            VideoSurfaceView view = (VideoSurfaceView) this.getView(R.id.video_surface_view);
-            view.setDisplay(display);
+            ((VideoSurfaceView) this.getView(R.id.video_surface_view)).setDisplay(display);
         }
     }
 
@@ -130,11 +129,11 @@ public class ViewController {
      *
      * @param status video status
      */
-    public void setVisibilities(VideoDecoder.STATUS status) {
+    public void setVisibilities(VideoDecoder.DecoderStatus status) {
         DebugLog.d(TAG, "setVisibilities( " + status.name() + " )");
 
         if (this.rootView == null) {
-            DebugLog.e(TAG, "root view is null.");
+            DebugLog.i(TAG, "root view is null.");
             return;
         }
 
@@ -145,13 +144,13 @@ public class ViewController {
                 DebugLog.v(TAG, "visibility : " + visibility);
                 view.setVisibility(visibility);
             } else {
-                DebugLog.v(TAG, "getView is null. (" + this.viewIdList[index] + ")");
+                DebugLog.e(TAG, "getView is null. (" + this.viewIdList[index] + ")");
             }
         }
 
-        if (status == VideoDecoder.STATUS.PLAYING) {
+        if (status == VideoDecoder.DecoderStatus.PLAYING) {
             this.setImageResource(status);
-        } else if (status == VideoDecoder.STATUS.PAUSED) {
+        } else if (status == VideoDecoder.DecoderStatus.PAUSED) {
             this.setImageResource(status);
             this.updateSpeedUpDownViews();
         }
@@ -292,14 +291,14 @@ public class ViewController {
      *
      * @param status video status
      */
-    private void setImageResource(VideoDecoder.STATUS status) {
+    private void setImageResource(VideoDecoder.DecoderStatus status) {
         DebugLog.d(TAG, "setImageResource");
         ImageView playButton = (ImageView) this.getView(R.id.button_play);
 
         if (playButton != null) {
-            if (status == VideoDecoder.STATUS.PLAYING) {
+            if (status == VideoDecoder.DecoderStatus.PLAYING) {
                 playButton.setImageResource(R.drawable.pause);
-            } else if (status == VideoDecoder.STATUS.PAUSED) {
+            } else if (status == VideoDecoder.DecoderStatus.PAUSED) {
                 playButton.setImageResource(R.drawable.play);
             }
         } else {

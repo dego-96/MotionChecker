@@ -21,7 +21,7 @@
     </string-array>
 
     <!-- Toast -->
-    <string name="toast_no_permission">動画を選択できません。</string>
+    <string name="toast_no_permission">動画を選択できません。\n外部ストレージへのアクセス権を許可して下さい。</string>
     <string name="toast_no_video">動画を取得できませんでした。</string>
 
 </resources>
