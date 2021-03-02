@@ -1,38 +1,19 @@
 package jp.mydns.dego.motionchecker.VideoPlayer;
 
-import android.media.MediaMetadataRetriever;
+import android.net.Uri;
 import android.view.Display;
 import android.view.Surface;
 import android.view.View;
 
-import jp.mydns.dego.motionchecker.BuildConfig;
 import jp.mydns.dego.motionchecker.Util.DebugLog;
 import jp.mydns.dego.motionchecker.View.ViewController;
 
 public class VideoController {
 
     // ---------------------------------------------------------------------------------------------
-    // inner class
-    // ---------------------------------------------------------------------------------------------
-    public static class VideoInfo {
-        int width;
-        int height;
-        int duration;
-        int rotation;
-
-        private VideoInfo() {
-            this.width = 0;
-            this.height = 0;
-            this.duration = 0;
-            this.rotation = 0;
-        }
-    }
-
-    // ---------------------------------------------------------------------------------------------
     // constant values
     // ---------------------------------------------------------------------------------------------
     private static final String TAG = "VideoController";
-    private VideoInfo info;
 
     // ---------------------------------------------------------------------------------------------
     // private fields
@@ -40,8 +21,9 @@ public class VideoController {
     private final ViewController viewController;
     private final VideoDecoder decoder;
     private final PlaySpeedManager speedManager;
-    private String filePath;
     private Thread videoThread;
+
+    private Video video;
 
     // ---------------------------------------------------------------------------------------------
     // constructor
@@ -52,7 +34,6 @@ public class VideoController {
      */
     public VideoController() {
         DebugLog.d(TAG, "VideoController");
-        this.filePath = null;
         this.viewController = new ViewController();
         this.decoder = new VideoDecoder();
         this.speedManager = new PlaySpeedManager();
@@ -60,7 +41,12 @@ public class VideoController {
         this.decoder.setOnVideoChangeListener(new OnVideoChangeListener() {
             @Override
             public void onDurationChanged(int duration) {
-                viewController.setDuration(duration);
+                DebugLog.d(TAG, "onDurationChanged");
+                DebugLog.v(TAG, "duration : " + duration);
+                if (video != null) {
+                    video.setDuration(duration);
+                    viewController.setDuration(video.getDuration());
+                }
             }
 
             @Override
@@ -84,7 +70,7 @@ public class VideoController {
         DebugLog.d(TAG, "viewSetup");
         this.viewController.bindRootView(rootView);
         this.viewController.bindDisplay(display);
-        this.viewController.setSurfaceViewSize(this.info.width, this.info.height, this.info.rotation);
+        this.viewController.setSurfaceViewSize(this.video);
     }
 
     /**
@@ -120,12 +106,13 @@ public class VideoController {
     }
 
     /**
-     * videoSelecting
+     * join
      */
-    public void videoSelecting() {
-        DebugLog.d(TAG, "videoSelecting");
+    public void join() {
+        DebugLog.d(TAG, "join");
         if (this.videoThread != null && this.videoThread.isAlive()) {
             try {
+                this.videoThread.interrupt();
                 this.videoThread.join();
             } catch (InterruptedException exception) {
                 exception.printStackTrace();
@@ -134,27 +121,28 @@ public class VideoController {
     }
 
     /**
-     * setVideoPath
+     * setVideo
      *
-     * @param path video file path
+     * @param uri video uri
+     * @return is set OK?
      */
-    public void setVideoPath(String path) {
-        DebugLog.d(TAG, "setVideoPath");
-        this.filePath = path;
-        DebugLog.v(TAG, "path : " + this.filePath);
+    public boolean setVideo(Uri uri) {
+        DebugLog.d(TAG, "setVideo");
 
-        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-        retriever.setDataSource(path);
-        if (BuildConfig.DEBUG) {
-            logMetaData(retriever);
+        if (uri == null) {
+            return false;
         }
 
-        this.info = new VideoInfo();
-        this.info.width = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH));
-        this.info.height = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT));
-        this.info.rotation = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION));
+        try {
+            this.video = new Video(uri);
+        } catch (Exception exception) {
+            this.video = null;
+            exception.printStackTrace();
+            return false;
+        }
 
         this.speedManager.init();
+        return true;
     }
 
     /**
@@ -174,8 +162,8 @@ public class VideoController {
             return;
         }
 
-        if (this.filePath != null && surface != null) {
-            if (this.decoder.init(this.filePath, surface)) {
+        if (this.video != null && surface != null) {
+            if (this.decoder.init(this.video, surface)) {
                 this.threadStart();
             }
         }
@@ -186,8 +174,8 @@ public class VideoController {
      *
      * @return video controller is standby.
      */
-    public boolean hasVideoPath() {
-        return (this.filePath != null && !"".equals(this.filePath));
+    public boolean isVideoStandby() {
+        return (this.video != null);
     }
 
     /**
@@ -292,7 +280,7 @@ public class VideoController {
 
         if (this.decoder.getFramePosition() == VideoDecoder.FramePosition.END) {
             this.decoder.release();
-            if (this.decoder.prepare(this.filePath)) {
+            if (this.decoder.prepare(this.video)) {
                 this.threadStart();
             }
         } else {
@@ -318,26 +306,5 @@ public class VideoController {
         DebugLog.d(TAG, "threadStart");
         this.videoThread = new Thread(this.decoder);
         this.videoThread.start();
-    }
-
-    /**
-     * logMetaData
-     *
-     * @param retriever media meta data retriever
-     */
-    private void logMetaData(MediaMetadataRetriever retriever) {
-        DebugLog.d(TAG, "logMetaData");
-
-        DebugLog.d(TAG, "==================================================");
-        DebugLog.d(TAG, "has audio  :" + retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_HAS_AUDIO));
-        DebugLog.d(TAG, "has video  :" + retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_HAS_VIDEO));
-        DebugLog.d(TAG, "date       :" + retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE));
-        DebugLog.d(TAG, "width      :" + retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH));
-        DebugLog.d(TAG, "height     :" + retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT));
-        DebugLog.d(TAG, "duration   :" + retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
-        DebugLog.d(TAG, "rotation   :" + retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION));
-        DebugLog.d(TAG, "num tracks :" + retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_NUM_TRACKS));
-        DebugLog.d(TAG, "title      :" + retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE));
-        DebugLog.d(TAG, "==================================================");
     }
 }

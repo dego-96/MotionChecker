@@ -7,12 +7,12 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
 
 import jp.mydns.dego.motionchecker.Util.DebugLog;
-import jp.mydns.dego.motionchecker.Util.FilePathHelper;
 import jp.mydns.dego.motionchecker.Util.PermissionManager;
 import jp.mydns.dego.motionchecker.VideoPlayer.VideoController;
 import jp.mydns.dego.motionchecker.VideoPlayer.VideoDecoder;
@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
         this.hideSystemUI();
 
         VideoController videoController = InstanceHolder.getInstance().getVideoController();
-        if (videoController.hasVideoPath()) {
+        if (videoController.isVideoStandby()) {
             videoController.viewSetup(
                 this.getWindow().getDecorView(),
                 this.getWindowManager().getDefaultDisplay()
@@ -206,7 +206,7 @@ public class MainActivity extends AppCompatActivity {
     private void requestGalleryResult(int resultCode, Intent data) {
         DebugLog.d(TAG, "requestGalleryResult");
 
-        if (resultCode != Activity.RESULT_OK) {
+        if (resultCode != Activity.RESULT_OK || data == null) {
             DebugLog.i(TAG, "Result code is not OK.");
             Toast.makeText(getApplication(), getString(R.string.toast_no_video), Toast.LENGTH_SHORT).show();
             return;
@@ -218,13 +218,10 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        String videoPath = FilePathHelper.getVideoPathFromUri(this, data);
         VideoController videoController = InstanceHolder.getInstance().getVideoController();
-        if (videoPath == null || "".equals(videoPath)) {
+        Uri uri = data.getData();
+        if (!videoController.setVideo(uri)) {
             Toast.makeText(getApplication(), getString(R.string.toast_no_video), Toast.LENGTH_SHORT).show();
-        } else {
-            DebugLog.d(TAG, "video path :" + videoPath);
-            videoController.setVideoPath(videoPath);
         }
     }
 
@@ -237,7 +234,7 @@ public class MainActivity extends AppCompatActivity {
         PermissionManager permissionManager = InstanceHolder.getInstance().getPermissionManager();
 
         if (permissionManager.getPermission(Manifest.permission.READ_EXTERNAL_STORAGE)) {
-            InstanceHolder.getInstance().getVideoController().videoSelecting();
+            InstanceHolder.getInstance().getVideoController().join();
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("video/*");

@@ -131,30 +131,31 @@ public class VideoDecoder implements Runnable {
     /**
      * init
      *
-     * @param filePath video file path
-     * @param surface  video surface
+     * @param video   video
+     * @param surface surface
      * @return initialization result
      */
-    boolean init(String filePath, Surface surface) {
+    boolean init(Video video, Surface surface) {
         DebugLog.d(TAG, "init");
 
         this.setStatus(DecoderStatus.INIT, false);
         this.surface = surface;
 
-        return this.prepare(filePath);
+        return this.prepare(video);
     }
 
     /**
      * prepare
      *
-     * @param filePath file path
+     * @param video video
      * @return prepare result
      */
-    boolean prepare(String filePath) {
+    public boolean prepare(Video video) {
         DebugLog.d(TAG, "prepare");
         this.extractor = new MediaExtractor();
         try {
-            this.extractor.setDataSource(filePath);
+            Context context = InstanceHolder.getInstance().getApplicationContext();
+            this.extractor.setDataSource(context, video.getUri(), null);
         } catch (IOException exception) {
             exception.printStackTrace();
             return false;

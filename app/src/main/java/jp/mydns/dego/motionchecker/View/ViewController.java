@@ -16,6 +16,7 @@ import jp.mydns.dego.motionchecker.InstanceHolder;
 import jp.mydns.dego.motionchecker.R;
 import jp.mydns.dego.motionchecker.Util.DebugLog;
 import jp.mydns.dego.motionchecker.VideoPlayer.PlaySpeedManager;
+import jp.mydns.dego.motionchecker.VideoPlayer.Video;
 import jp.mydns.dego.motionchecker.VideoPlayer.VideoDecoder;
 
 public class ViewController {
@@ -159,29 +160,33 @@ public class ViewController {
     /**
      * setSurfaceViewSize
      *
-     * @param width    video width
-     * @param height   video height
-     * @param rotation video rotation
+     * @param video video
      */
-    public void setSurfaceViewSize(int width, int height, int rotation) {
+    public void setSurfaceViewSize(Video video) {
         DebugLog.d(TAG, "setSurfaceViewSize");
-        DebugLog.v(TAG, "surface view size (w, h) : (" + width + ", " + height + ")");
 
         if (this.display == null) {
             DebugLog.e(TAG, "Can not set surface view size.");
             return;
         }
 
+        int width = video.getWidth();
+        int height = video.getHeight();
+        int rotation = video.getRotation();
+        DebugLog.v(TAG, "surface view size (w, h) : (" + width + ", " + height + ")");
+        DebugLog.v(TAG, "video rotation : " + rotation);
+
         Point point = new Point();
         this.display.getSize(point);
         int displayW = point.x;
         int displayH = point.y;
-        float videoAspect = (float) width / (float) height;
+        boolean isLandscape = ((rotation / 90) % 2 == 0);
+        float videoAspect = isLandscape ? (float) width / (float) height : (float) height / (float) width;
         float displayAspect = (float) displayW / (float) displayH;
 
         int calcW;
         int calcH;
-        if ((rotation % 180) == 0) {   // 横長画像
+        if (isLandscape) {   // 横長画像
             if (displayAspect > videoAspect) {
                 // 画面より横長
                 calcW = (int) ((float) width * ((float) displayH / (float) height));
