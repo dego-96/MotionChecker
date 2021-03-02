@@ -13,11 +13,11 @@
     <string name="current_time_init">00:00:000</string>
     <string name="remain_time_init">--:--:---</string>
     <string-array name="play_speed_text">
-        <item>x0.100</item>
-        <item>x0.125</item>
-        <item>x0.25</item>
-        <item>x0.50</item>
-        <item>x1.00</item>
+        <item>x1/10</item>
+        <item>x1/8</item>
+        <item>x1/4</item>
+        <item>x1/2</item>
+        <item>x1/1</item>
     </string-array>
 
     <!-- Toast -->

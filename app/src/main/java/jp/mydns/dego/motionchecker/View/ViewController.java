@@ -262,14 +262,14 @@ public class ViewController {
         }
 
         if (speedLevel == PlaySpeedManager.SPEED_LEVEL_MIN) {
-            speedUpImageView.setVisibility(View.VISIBLE);
-            speedDownImageView.setVisibility(View.INVISIBLE);
+            speedUpImageView.setEnabled(true);
+            speedDownImageView.setEnabled(false);
         } else if (speedLevel == PlaySpeedManager.SPEED_LEVEL_MAX) {
-            speedUpImageView.setVisibility(View.INVISIBLE);
-            speedDownImageView.setVisibility(View.VISIBLE);
+            speedUpImageView.setEnabled(false);
+            speedDownImageView.setEnabled(true);
         } else {
-            speedUpImageView.setVisibility(View.VISIBLE);
-            speedDownImageView.setVisibility(View.VISIBLE);
+            speedUpImageView.setEnabled(true);
+            speedDownImageView.setEnabled(true);
         }
 
         String[] speedText = InstanceHolder.getInstance().getResources().getStringArray(R.array.play_speed_text);

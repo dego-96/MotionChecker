@@ -9,11 +9,11 @@ public class PlaySpeedManager {
     // ---------------------------------------------------------------------------------------------
     private static final String TAG = "PlaySpeedManager";
     private static final float[] playSpeed = {
-        0.1f,
-        0.125f,
-        0.25f,
-        0.5f,
-        1.0f
+        0.1f,   // 1/10
+        0.125f, // 1/8
+        0.25f,  // 1/4
+        0.5f,   // 1/2
+        1.0f    // 1/1
     };
 
     public static final int SPEED_LEVEL_MAX = PlaySpeedManager.playSpeed.length - 1;
