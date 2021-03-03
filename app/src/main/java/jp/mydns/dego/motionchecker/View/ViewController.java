@@ -173,7 +173,7 @@ public class ViewController {
         int width = video.getWidth();
         int height = video.getHeight();
         int rotation = video.getRotation();
-        DebugLog.v(TAG, "surface view size (w, h) : (" + width + ", " + height + ")");
+        DebugLog.v(TAG, "video size : (" + width + ", " + height + ")");
         DebugLog.v(TAG, "video rotation : " + rotation);
 
         Point point = new Point();

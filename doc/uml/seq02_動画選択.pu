@@ -44,7 +44,7 @@ else アクセス権限なし、許可
     deactivate Main
     User ->> Main ++ : onRequestPermissionsResult(許可)
     Main -> Main : videoSelect
-    Main -> Controller ++ : videoSelecting
+    Main -> Controller ++ : join
     Controller -> Decoder : join
     deactivate Controller
     Main -> Main -- : startActivityForResult
@@ -54,7 +54,7 @@ else アクセス権限なし、許可
     deactivate Main
     Gallery <- Main : ギャラリーアプリ起動
 else アクセス権限あり
-    Main -> Controller ++ : videoSelecting
+    Main -> Controller ++ : join
     activate Main
     Controller -> Decoder : join
     deactivate Controller
@@ -90,7 +90,8 @@ else 動画選択時
     Main -> Permission ++ : getPermission
     return 許可
     Main -> Main : getVideoPathFromUri
-    Main -> Controller ++ : setVideoPath
+    Main -> Controller ++ : setVideo
+    Controller -> Controller : Videoインスタンス生成
     deactivate Controller
     deactivate Main
 
@@ -101,7 +102,10 @@ else 動画選択時
     Controller -> Views ++ : bindDisplay
     Views -> Surface : setDisplay
     deactivate Views
-    Controller -> Views : setSurfaceViewSize
+    Controller -> Views ++ : setSurfaceViewSize
+    Views -> Surface ++ : setSize
+    Surface -> Surface -- : layout
+    deactivate Views
     deactivate Controller
     deactivate Main
     Main -> Main ++ : onResume

@@ -37,10 +37,13 @@ activate Main
     Main -> Controller ++ : インスタンス生成
     Controller -> Views **
     Controller -> Decoder **
+    activate Decoder
     hnote over Decoder
     INIT
     end note
-    Controller -> Handler **
+    Decoder -> Handler **
+    deactivate Decoder
+    Controller -> Controller : setOnVideoChangeListener
     return
 
     Main -> Controller ++ : setVisibilities(rootView, INIT)
