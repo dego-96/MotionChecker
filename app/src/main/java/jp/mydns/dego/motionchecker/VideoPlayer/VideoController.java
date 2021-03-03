@@ -198,6 +198,19 @@ public class VideoController {
     public void stop() {
         DebugLog.d(TAG, "stop");
 
+        if (this.videoThread != null && this.videoThread.isAlive()) {
+            try {
+                this.videoThread.interrupt();
+                this.videoThread.join();
+            } catch (InterruptedException exception) {
+                exception.printStackTrace();
+            }
+        }
+
+        this.decoder.release();
+        this.decoder.prepare(this.video);
+
+        this.threadStart();
     }
 
     /**
@@ -247,7 +260,7 @@ public class VideoController {
         if (decoder.getStatus() == VideoDecoder.DecoderStatus.SEEKING) {
             return;
         }
-        if (this.videoThread.isAlive()) {
+        if (this.videoThread != null && this.videoThread.isAlive()) {
             try {
                 this.videoThread.join();
             } catch (InterruptedException exception) {
