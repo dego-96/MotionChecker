@@ -96,6 +96,16 @@ public class VideoController {
     }
 
     /**
+     * setViewEnable
+     *
+     * @param position video position
+     */
+    public void setViewEnable(VideoDecoder.FramePosition position) {
+        DebugLog.d(TAG, "setViewEnable");
+        this.viewController.updateNextPreviousViews(position);
+    }
+
+    /**
      * setProgress
      *
      * @param progress video progress
@@ -208,7 +218,7 @@ public class VideoController {
         }
 
         this.decoder.release();
-        this.decoder.prepare(this.video);
+        this.decoder.prepare(this.video, false);
 
         this.threadStart();
     }
@@ -219,9 +229,11 @@ public class VideoController {
     public void speedUp() {
         DebugLog.d(TAG, "speedUp");
 
-        this.speedManager.speedUp();
-        this.viewController.updateSpeedUpDownViews();
-        this.decoder.setSpeed(this.speedManager.getSpeed());
+        if (this.decoder.getStatus() == VideoDecoder.DecoderStatus.PAUSED) {
+            this.speedManager.speedUp();
+            this.viewController.updateSpeedUpDownViews();
+            this.decoder.setSpeed(this.speedManager.getSpeed());
+        }
     }
 
     /**
@@ -230,9 +242,11 @@ public class VideoController {
     public void speedDown() {
         DebugLog.d(TAG, "speedDown");
 
-        this.speedManager.speedDown();
-        this.viewController.updateSpeedUpDownViews();
-        this.decoder.setSpeed(this.speedManager.getSpeed());
+        if (this.decoder.getStatus() == VideoDecoder.DecoderStatus.PAUSED) {
+            this.speedManager.speedDown();
+            this.viewController.updateSpeedUpDownViews();
+            this.decoder.setSpeed(this.speedManager.getSpeed());
+        }
     }
 
     /**
@@ -241,6 +255,15 @@ public class VideoController {
     public void nextFrame() {
         DebugLog.d(TAG, "nextFrame");
 
+        if (this.videoThread != null && this.videoThread.isAlive()) {
+            DebugLog.i(TAG, "can not start thread. (decode thread is running.)");
+            return;
+        }
+
+        if (this.decoder.getStatus() == VideoDecoder.DecoderStatus.PAUSED) {
+            this.decoder.next();
+            this.threadStart();
+        }
     }
 
     /**
@@ -248,6 +271,16 @@ public class VideoController {
      */
     public void previousFrame() {
         DebugLog.d(TAG, "previousFrame");
+
+        if (this.videoThread != null && this.videoThread.isAlive()) {
+            DebugLog.i(TAG, "can not start thread. (decode thread is running.)");
+            return;
+        }
+
+        if (this.decoder.getStatus() == VideoDecoder.DecoderStatus.PAUSED) {
+            this.decoder.previous();
+            this.threadStart();
+        }
     }
 
     /**
@@ -291,13 +324,13 @@ public class VideoController {
     private void play() {
         DebugLog.d(TAG, "play");
 
-        if (this.decoder.getFramePosition() == VideoDecoder.FramePosition.END) {
+        if (this.decoder.getFramePosition() == VideoDecoder.FramePosition.LAST) {
             this.decoder.release();
-            if (this.decoder.prepare(this.video)) {
+            if (this.decoder.prepare(this.video, true)) {
                 this.threadStart();
             }
         } else {
-            threadStart();
+            this.threadStart();
         }
     }
 

@@ -56,6 +56,7 @@ public class VideoDecoder implements Runnable {
         }
 
         void waitNext() {
+            DebugLog.d(TAG, "waitNext");
             long elapsed;
             long waitTime = this.renderTime - this.startTime;
             do {
@@ -68,6 +69,7 @@ public class VideoDecoder implements Runnable {
                     this.isInterrupted = true;
                 }
             } while (elapsed < waitTime);
+            DebugLog.v(TAG, "end wait");
         }
     }
 
@@ -85,9 +87,11 @@ public class VideoDecoder implements Runnable {
     }
 
     public enum FramePosition {
-        START,
+        INIT,
+        FIRST,
         MID,
-        END
+        LAST,
+        RESTART
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -121,6 +125,7 @@ public class VideoDecoder implements Runnable {
     public VideoDecoder() {
         DebugLog.d(TAG, "VideoDecoder");
         this.status = DecoderStatus.INIT;
+        this.position = FramePosition.INIT;
         this.handler = new VideoPlayerHandler();
     }
 
@@ -141,16 +146,17 @@ public class VideoDecoder implements Runnable {
         this.setStatus(DecoderStatus.INIT, false);
         this.surface = surface;
 
-        return this.prepare(video);
+        return this.prepare(video, false);
     }
 
     /**
      * prepare
      *
-     * @param video video
+     * @param video   video
+     * @param restart restart
      * @return prepare result
      */
-    public boolean prepare(Video video) {
+    public boolean prepare(Video video, boolean restart) {
         DebugLog.d(TAG, "prepare");
         this.extractor = new MediaExtractor();
         try {
@@ -187,9 +193,17 @@ public class VideoDecoder implements Runnable {
         }
         if (this.decoder != null) {
             this.decoder.start();
+        } else {
+            return false;
         }
+
         this.videoTimer = new VideoTimer();
-        this.position = null;
+
+        if (restart) {
+            this.position = FramePosition.RESTART;
+        } else {
+            this.position = FramePosition.INIT;
+        }
 
         this.setStatus(DecoderStatus.PAUSED, true);
         return true;
@@ -246,6 +260,22 @@ public class VideoDecoder implements Runnable {
     }
 
     /**
+     * next
+     */
+    void next() {
+        DebugLog.d(TAG, "next");
+        this.setStatus(DecoderStatus.NEXT_FRAME, false);
+    }
+
+    /**
+     * previous
+     */
+    void previous() {
+        DebugLog.d(TAG, "previous");
+        this.setStatus(DecoderStatus.PREVIOUS_FRAME, false);
+    }
+
+    /**
      * setOnVideoChangeListener
      *
      * @param listener video change listener
@@ -274,7 +304,7 @@ public class VideoDecoder implements Runnable {
                 // Nothing to do.
                 break;
             case PAUSED:
-                if (this.position == null) {
+                if (this.position == FramePosition.INIT) {
                     this.nextFrame();
                 } else {
                     this.play();
@@ -285,7 +315,7 @@ public class VideoDecoder implements Runnable {
                 this.nextFrame();
                 break;
             case PREVIOUS_FRAME:
-//                this.toPreviousFrame();
+                this.setStatus(DecoderStatus.PAUSED, false);    // for debug
                 break;
         }
     }
@@ -337,6 +367,7 @@ public class VideoDecoder implements Runnable {
 
         Bundle bundle = new Bundle();
         bundle.putLong(VideoPlayerHandler.MESSAGE_PROGRESS_US, time_us);
+        bundle.putSerializable(VideoPlayerHandler.MESSAGE_FRAME_POSITION, this.position);
         Message message = Message.obtain();
         message.setData(bundle);
         this.handler.sendMessage(message);
@@ -360,13 +391,6 @@ public class VideoDecoder implements Runnable {
 
             queueOutput(info);
 
-            // All decoded frames have been rendered, we can stop playing now
-            if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
-                DebugLog.d(TAG_THREAD, "OutputBuffer BUFFER_FLAG_END_OF_STREAM");
-                this.setStatus(DecoderStatus.PAUSED, true);
-                this.position = FramePosition.END;
-                return;
-            }
         }
         this.setStatus(DecoderStatus.PAUSED, true);
     }
@@ -387,13 +411,6 @@ public class VideoDecoder implements Runnable {
 
             boolean render = queueOutput(info);
 
-            // 最後まで再生した場合
-            if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
-                DebugLog.d(TAG_THREAD, "OutputBuffer BUFFER_FLAG_END_OF_STREAM");
-                this.position = FramePosition.END;
-                this.setStatus(DecoderStatus.PAUSED, true);
-                return;
-            }
             if (render) {
                 this.setStatus(DecoderStatus.PAUSED, true);
                 return;
@@ -444,15 +461,24 @@ public class VideoDecoder implements Runnable {
                 this.videoTimer.waitNext();
 
                 this.decoder.releaseOutputBuffer(outIndex, true);
-                if (this.position == null) {
-                    this.position = FramePosition.START;
-                } else if (this.position == FramePosition.START) {
+                if (this.position == FramePosition.INIT ||
+                    this.position == FramePosition.RESTART) {
+                    this.position = FramePosition.FIRST;
+                } else if (this.position == FramePosition.FIRST) {
                     this.position = FramePosition.MID;
                 }
                 this.videoTimer.setRenderTime();
 
+                if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+                    DebugLog.d(TAG_THREAD, "OutputBuffer BUFFER_FLAG_END_OF_STREAM");
+                    this.position = FramePosition.LAST;
+                    this.setStatus(DecoderStatus.PAUSED, true);
+                    this.videoTimer.isInterrupted = true;
+                }
+
                 DebugLog.v(TAG_THREAD, "presentationTimeUs : " + info.presentationTimeUs);
                 this.sendMessage((long) ((float) info.presentationTimeUs * this.videoTimer.speed));
+
                 return true;
             }
         }

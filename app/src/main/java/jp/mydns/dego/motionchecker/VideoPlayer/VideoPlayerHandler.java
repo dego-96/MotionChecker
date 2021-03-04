@@ -14,6 +14,7 @@ public class VideoPlayerHandler extends Handler {
     private static final String TAG = "VideoPlayerHandler";
 
     static final String MESSAGE_PROGRESS_US = "MESSAGE_PROGRESS_US";
+    static final String MESSAGE_FRAME_POSITION = "MESSAGE_FRAME_POSITION";
     static final String MESSAGE_STATUS = "MESSAGE_STATUS";
 
 
@@ -48,10 +49,16 @@ public class VideoPlayerHandler extends Handler {
 
         VideoController videoController = InstanceHolder.getInstance().getVideoController();
 
-        long time_us = message.getData().getLong(MESSAGE_PROGRESS_US);
-        DebugLog.v(TAG, "progress time (us) : " + time_us);
-        if (time_us >= 0) {
-            videoController.setProgress((int) (time_us / 1000));
+        VideoDecoder.FramePosition position = (VideoDecoder.FramePosition) message.getData().getSerializable(MESSAGE_FRAME_POSITION);
+        if (position != null) {
+            DebugLog.v(TAG, "frame position : " + position.name());
+            videoController.setViewEnable(position);
+
+            long time_us = message.getData().getLong(MESSAGE_PROGRESS_US);
+            DebugLog.v(TAG, "progress time (us) : " + time_us);
+            if (time_us >= 0 && position != VideoDecoder.FramePosition.LAST) {
+                videoController.setProgress((int) (time_us / 1000));
+            }
         }
 
         VideoDecoder.DecoderStatus status = (VideoDecoder.DecoderStatus) message.getData().getSerializable(MESSAGE_STATUS);

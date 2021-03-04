@@ -1,6 +1,7 @@
 package jp.mydns.dego.motionchecker.View;
 
 import android.graphics.Point;
+import android.media.Image;
 import android.util.SparseArray;
 import android.view.Display;
 import android.view.View;
@@ -274,6 +275,36 @@ public class ViewController {
 
         String[] speedText = InstanceHolder.getInstance().getResources().getStringArray(R.array.play_speed_text);
         speedTextView.setText(speedText[speedLevel]);
+    }
+
+    /**
+     * updateNextPreviousViews
+     *
+     * @param position video position
+     */
+    public void updateNextPreviousViews(VideoDecoder.FramePosition position) {
+        DebugLog.d(TAG, "updateNextPreviousViews");
+
+        ImageView nextImageView = (ImageView) this.getView(R.id.button_next_frame);
+        ImageView prevImageView = (ImageView) this.getView(R.id.button_previous_frame);
+
+        if (nextImageView == null ||
+            prevImageView == null) {
+            DebugLog.e(TAG, "get view error.");
+            return;
+        }
+
+        if (position == null ||
+            position == VideoDecoder.FramePosition.FIRST) {
+            nextImageView.setEnabled(true);
+            prevImageView.setEnabled(false);
+        } else if (position == VideoDecoder.FramePosition.MID) {
+            nextImageView.setEnabled(true);
+            prevImageView.setEnabled(true);
+        } else if (position == VideoDecoder.FramePosition.LAST) {
+            nextImageView.setEnabled(false);
+            prevImageView.setEnabled(true);
+        }
     }
 
     // ---------------------------------------------------------------------------------------------
