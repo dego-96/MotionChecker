@@ -67,6 +67,7 @@ public class VideoProgressBar extends AppCompatSeekBar implements SeekBar.OnSeek
     @Override
     public void onStartTrackingTouch(SeekBar seekBar) {
         DebugLog.d(TAG, "onStartTrackingTouch");
+        InstanceHolder.getInstance().getVideoController().pause();
     }
 
     @Override

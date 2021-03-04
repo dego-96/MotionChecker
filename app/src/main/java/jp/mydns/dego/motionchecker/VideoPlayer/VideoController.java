@@ -203,6 +203,17 @@ public class VideoController {
     }
 
     /**
+     * pause
+     */
+    public void pause() {
+        DebugLog.d(TAG, "pause");
+
+        if (this.videoThread != null && this.videoThread.isAlive()) {
+            this.videoThread.interrupt();
+        }
+    }
+
+    /**
      * stop
      */
     public void stop() {
@@ -219,6 +230,9 @@ public class VideoController {
 
         this.decoder.release();
         this.decoder.prepare(this.video, false);
+
+        // prepareで再生速度が初期化されるので再設定
+        this.decoder.setSpeed(this.speedManager.getSpeed());
 
         this.threadStart();
     }
@@ -331,17 +345,6 @@ public class VideoController {
             }
         } else {
             this.threadStart();
-        }
-    }
-
-    /**
-     * pause
-     */
-    private void pause() {
-        DebugLog.d(TAG, "pause");
-
-        if (this.videoThread != null && this.videoThread.isAlive()) {
-            this.videoThread.interrupt();
         }
     }
 
