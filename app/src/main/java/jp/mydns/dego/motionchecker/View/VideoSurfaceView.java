@@ -173,7 +173,8 @@ public class VideoSurfaceView extends SurfaceView implements SurfaceHolder.Callb
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         DebugLog.d(TAG, "surfaceCreated");
-        InstanceHolder.getInstance().getVideoController().videoSetup(holder.getSurface());
+
+        InstanceHolder.getInstance().getVideoController().setSurface(holder.getSurface());
     }
 
     /**

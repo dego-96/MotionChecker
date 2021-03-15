@@ -1,7 +1,7 @@
 package jp.mydns.dego.motionchecker.View;
 
+import android.app.Activity;
 import android.graphics.Point;
-import android.media.Image;
 import android.util.SparseArray;
 import android.view.Display;
 import android.view.View;
@@ -31,7 +31,6 @@ public class ViewController {
     // private fields
     // ---------------------------------------------------------------------------------------------
     private static final SimpleDateFormat TimerFormat = new SimpleDateFormat("mm:ss:SSS", Locale.JAPAN);
-    private View rootView;
     private Display display;
     private SparseArray<View> views;
     private final int[] viewIdList = {
@@ -52,7 +51,7 @@ public class ViewController {
     private final int[][] visibilityTable = {
         /* 0x00:VISIBLE,  0x04:INVISIBLE,  0x08:GONE */
         /*INIT PAUSE PLAY  SEEK  NEXT  PREV */
-        {0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   /* video_surface_view */
+        {0x08, 0x00, 0x00, 0x00, 0x00, 0x00},   /* video_surface_view */
         {0x00, 0x08, 0x08, 0x08, 0x08, 0x08},   /* image_no_video */
         {0x00, 0x00, 0x04, 0x00, 0x00, 0x00},   /* button_gallery */
         {0x08, 0x00, 0x00, 0x00, 0x00, 0x00},   /* button_play */
@@ -77,7 +76,7 @@ public class ViewController {
     public ViewController() {
         DebugLog.d(TAG, "ViewController");
 
-        this.rootView = null;
+        this.display = null;
         this.views = null;
     }
 
@@ -86,28 +85,22 @@ public class ViewController {
     // ---------------------------------------------------------------------------------------------
 
     /**
-     * bindRootView
+     * setViews
      *
-     * @param rootView layout root view
+     * @param activity activity
      */
-    public void bindRootView(View rootView) {
-        DebugLog.d(TAG, "bindRootView");
+    public void setViews(Activity activity) {
+        DebugLog.d(TAG, "setViews");
 
-        this.rootView = rootView;
-        int width = rootView.getWidth();
-        int height = rootView.getHeight();
-        DebugLog.v(TAG, "rootView size (w, h) : (" + width + ", " + height + ")");
-
-        if (this.views == null) {
-            this.views = new SparseArray<>();
-            for (int id : this.viewIdList) {
-                View view = rootView.findViewById(id);
-                if (view != null) {
-                    DebugLog.v(TAG, "put view (" + id + ")");
-                    this.views.put(id, view);
-                } else {
-                    DebugLog.e(TAG, "Can not get view. (" + id + ")");
-                }
+        // Activityが再生成された時はViewも再取得する
+        // ここで更新しないとSurfaceViewのcreateSurfaceが呼び出されない
+        this.views = new SparseArray<>();
+        for (int id : this.viewIdList) {
+            View view = activity.findViewById(id);
+            if (view != null) {
+                this.views.put(id, view);
+            } else {
+                DebugLog.e(TAG, "Can not get view. (" + id + ")");
             }
         }
     }
@@ -122,7 +115,7 @@ public class ViewController {
         this.display = display;
 
         if (this.views != null) {
-            ((VideoSurfaceView) this.getView(R.id.video_surface_view)).setDisplay(display);
+            ((VideoSurfaceView) this.views.get(R.id.video_surface_view)).setDisplay(display);
         }
     }
 
@@ -134,19 +127,15 @@ public class ViewController {
     public void setVisibilities(VideoDecoder.DecoderStatus status) {
         DebugLog.d(TAG, "setVisibilities( " + status.name() + " )");
 
-        if (this.rootView == null) {
-            DebugLog.i(TAG, "root view is null.");
-            return;
-        }
-
         for (int index = 0; index < this.visibilityTable.length; index++) {
             int visibility = this.visibilityTable[index][status.ordinal()];
-            View view = this.getView(this.viewIdList[index]);
+            View view = this.views.get(this.viewIdList[index]);
             if (view != null) {
                 DebugLog.v(TAG, "visibility : " + visibility);
                 view.setVisibility(visibility);
             } else {
                 DebugLog.e(TAG, "getView is null. (" + this.viewIdList[index] + ")");
+                return;
             }
         }
 
@@ -209,7 +198,7 @@ public class ViewController {
             }
         }
 
-        VideoSurfaceView surfaceView = (VideoSurfaceView) this.getView(R.id.video_surface_view);
+        VideoSurfaceView surfaceView = (VideoSurfaceView) this.views.get(R.id.video_surface_view);
         surfaceView.setSize(calcW, calcH);
     }
 
@@ -220,8 +209,8 @@ public class ViewController {
      */
     public void setDuration(int duration) {
         DebugLog.d(TAG, "setDuration (" + duration + ")");
-        ((SeekBar) this.getView(R.id.seek_bar_playtime)).setMax(duration);
-        ((TextView) this.getView(R.id.text_view_remain_time)).setText(TimerFormat.format(new Date(duration)));
+        ((SeekBar) this.views.get(R.id.seek_bar_playtime)).setMax(duration);
+        ((TextView) this.views.get(R.id.text_view_remain_time)).setText(TimerFormat.format(new Date(duration)));
     }
 
     /**
@@ -231,16 +220,16 @@ public class ViewController {
      */
     public void setProgress(int progress) {
         DebugLog.d(TAG, "setProgress (" + progress + ")");
-        SeekBar seekBar = (SeekBar) this.getView(R.id.seek_bar_playtime);
+        SeekBar seekBar = (SeekBar) this.views.get(R.id.seek_bar_playtime);
         seekBar.setProgress(progress);
 
-        ((TextView) this.getView(R.id.text_view_current_time)).setText(TimerFormat.format(new Date(progress)));
+        ((TextView) this.views.get(R.id.text_view_current_time)).setText(TimerFormat.format(new Date(progress)));
         int duration = seekBar.getMax();
         if (progress < duration) {
-            ((TextView) this.getView(R.id.text_view_remain_time)).setText(TimerFormat.format(new Date(duration - progress)));
+            ((TextView) this.views.get(R.id.text_view_remain_time)).setText(TimerFormat.format(new Date(duration - progress)));
         } else {
             DebugLog.e(TAG, "progress value error.");
-            ((TextView) this.getView(R.id.text_view_remain_time)).setText(InstanceHolder.getInstance().getText(R.string.remain_time_init));
+            ((TextView) this.views.get(R.id.text_view_remain_time)).setText(InstanceHolder.getInstance().getText(R.string.remain_time_init));
         }
     }
 
@@ -250,9 +239,9 @@ public class ViewController {
     public void updateSpeedUpDownViews() {
         DebugLog.d(TAG, "updateSpeedUpDownViews");
 
-        ImageView speedUpImageView = (ImageView) this.getView(R.id.button_speed_up);
-        ImageView speedDownImageView = (ImageView) this.getView(R.id.button_speed_down);
-        TextView speedTextView = (TextView) this.getView(R.id.text_view_speed);
+        ImageView speedUpImageView = (ImageView) this.views.get(R.id.button_speed_up);
+        ImageView speedDownImageView = (ImageView) this.views.get(R.id.button_speed_down);
+        TextView speedTextView = (TextView) this.views.get(R.id.text_view_speed);
         int speedLevel = InstanceHolder.getInstance().getVideoController().getSpeedLevel();
 
         if (speedUpImageView == null ||
@@ -285,8 +274,8 @@ public class ViewController {
     public void updateNextPreviousViews(VideoDecoder.FramePosition position) {
         DebugLog.d(TAG, "updateNextPreviousViews");
 
-        ImageView nextImageView = (ImageView) this.getView(R.id.button_next_frame);
-        ImageView prevImageView = (ImageView) this.getView(R.id.button_previous_frame);
+        ImageView nextImageView = (ImageView) this.views.get(R.id.button_next_frame);
+        ImageView prevImageView = (ImageView) this.views.get(R.id.button_previous_frame);
 
         if (nextImageView == null ||
             prevImageView == null) {
@@ -312,24 +301,13 @@ public class ViewController {
     // ---------------------------------------------------------------------------------------------
 
     /**
-     * getView
-     *
-     * @param id view id
-     * @return view
-     */
-    private View getView(int id) {
-        DebugLog.d(TAG, "getView (" + id + ")");
-        return this.views.get(id);
-    }
-
-    /**
      * setImageResource
      *
      * @param status video status
      */
     private void setImageResource(VideoDecoder.DecoderStatus status) {
         DebugLog.d(TAG, "setImageResource");
-        ImageView playButton = (ImageView) this.getView(R.id.button_play);
+        ImageView playButton = (ImageView) this.views.get(R.id.button_play);
 
         if (playButton != null) {
             if (status == VideoDecoder.DecoderStatus.PLAYING) {

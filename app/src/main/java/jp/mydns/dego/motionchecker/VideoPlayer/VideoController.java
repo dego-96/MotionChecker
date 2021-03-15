@@ -1,9 +1,9 @@
 package jp.mydns.dego.motionchecker.VideoPlayer;
 
+import android.app.Activity;
 import android.net.Uri;
 import android.view.Display;
 import android.view.Surface;
-import android.view.View;
 
 import jp.mydns.dego.motionchecker.Util.DebugLog;
 import jp.mydns.dego.motionchecker.View.ViewController;
@@ -24,6 +24,7 @@ public class VideoController {
     private Thread videoThread;
 
     private Video video;
+    private Surface surface;
 
     // ---------------------------------------------------------------------------------------------
     // constructor
@@ -60,17 +61,12 @@ public class VideoController {
     // public method
     // ---------------------------------------------------------------------------------------------
 
-    /**
-     * viewSetup
-     *
-     * @param rootView root view
-     * @param display  display
-     */
-    public void viewSetup(View rootView, Display display) {
-        DebugLog.d(TAG, "viewSetup");
-        this.viewController.bindRootView(rootView);
+    public void setViews(Activity activity) {
+        this.viewController.setViews(activity);
+    }
+
+    public void bindDisplay(Display display) {
         this.viewController.bindDisplay(display);
-        this.viewController.setSurfaceViewSize(this.video);
     }
 
     /**
@@ -79,20 +75,7 @@ public class VideoController {
      * @param status video status
      */
     public void setVisibilities(VideoDecoder.DecoderStatus status) {
-        DebugLog.d(TAG, "setVisibilities");
         this.viewController.setVisibilities(status);
-    }
-
-    /**
-     * setVisibilities
-     *
-     * @param rootView root view
-     * @param status   decoder status
-     */
-    public void setVisibilities(View rootView, VideoDecoder.DecoderStatus status) {
-        DebugLog.d(TAG, "setVisibilities");
-        this.viewController.bindRootView(rootView);
-        this.setVisibilities(status);
     }
 
     /**
@@ -113,6 +96,12 @@ public class VideoController {
     public void setProgress(int progress) {
         DebugLog.d(TAG, "setProgress");
         this.viewController.setProgress(progress);
+
+        if (progress == 0) {
+            this.setViewEnable(VideoDecoder.FramePosition.FIRST);
+        } else if (this.video != null && this.video.getDuration() == progress) {
+            this.setViewEnable(VideoDecoder.FramePosition.LAST);
+        }
     }
 
     /**
@@ -151,41 +140,39 @@ public class VideoController {
             return false;
         }
 
+        this.viewController.setSurfaceViewSize(this.video);
+        this.viewController.setVisibilities(VideoDecoder.DecoderStatus.PAUSED);
+
         this.speedManager.init();
         return true;
     }
 
     /**
-     * videoSetup
+     * setSurface
      *
      * @param surface surface
      */
-    public void videoSetup(Surface surface) {
-        DebugLog.d(TAG, "videoSetup");
+    public void setSurface(Surface surface) {
+        DebugLog.d(TAG, "setSurface");
 
-        if (this.videoThread != null && this.videoThread.isAlive()) {
-            try {
-                this.videoThread.join();
-            } catch (InterruptedException exception) {
-                exception.printStackTrace();
-            }
+        if (surface != null && surface.isValid()) {
+            this.surface = surface;
+        } else {
+            DebugLog.w(TAG, "surface is invalid.");
+            this.surface = null;
             return;
         }
 
-        if (this.video != null && surface != null) {
-            if (this.decoder.init(this.video, surface)) {
-                this.threadStart();
-            }
-        }
+        this.videoSetup();
     }
 
     /**
-     * hasVideoPath
+     * isVideoStandby
      *
      * @return video controller is standby.
      */
     public boolean isVideoStandby() {
-        return (this.video != null);
+        return (this.video != null && this.surface != null);
     }
 
     /**
@@ -331,6 +318,24 @@ public class VideoController {
     // ---------------------------------------------------------------------------------------------
     // private method
     // ---------------------------------------------------------------------------------------------
+
+    /**
+     * videoSetup
+     */
+    private void videoSetup() {
+        DebugLog.d(TAG, "videoSetup");
+
+        if (this.video == null) {
+            DebugLog.w(TAG, "video is null.");
+            return;
+        }
+
+        if (this.video != null && surface != null) {
+            if (this.decoder.init(this.video, surface)) {
+                this.threadStart();
+            }
+        }
+    }
 
     /**
      * play

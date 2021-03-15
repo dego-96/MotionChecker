@@ -56,14 +56,11 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
         this.hideSystemUI();
 
-        VideoController videoController = InstanceHolder.getInstance().getVideoController();
-        if (videoController.isVideoStandby()) {
-            videoController.viewSetup(
-                this.getWindow().getDecorView(),
-                this.getWindowManager().getDefaultDisplay()
-            );
-        } else {
-            videoController.setVisibilities(this.getWindow().getDecorView(), VideoDecoder.DecoderStatus.INIT);
+        this.getVideoController().setViews(this);
+        this.getVideoController().bindDisplay(this.getWindowManager().getDefaultDisplay());
+
+        if (!this.getVideoController().isVideoStandby()) {
+            this.getVideoController().setVisibilities(VideoDecoder.DecoderStatus.INIT);
         }
     }
 
@@ -161,29 +158,36 @@ public class MainActivity extends AppCompatActivity {
     public void onButtonClicked(View button) {
         DebugLog.d(TAG, "onButtonClicked");
 
-        VideoController videoController = InstanceHolder.getInstance().getVideoController();
-
         int id = button.getId();
         if (id == R.id.button_gallery) {
             this.videoSelect();
         } else if (id == R.id.button_play) {
-            videoController.playOrPause();
+            this.getVideoController().playOrPause();
         } else if (id == R.id.button_stop) {
-            videoController.stop();
+            this.getVideoController().stop();
         } else if (id == R.id.button_speed_up) {
-            videoController.speedUp();
+            this.getVideoController().speedUp();
         } else if (id == R.id.button_speed_down) {
-            videoController.speedDown();
+            this.getVideoController().speedDown();
         } else if (id == R.id.button_next_frame) {
-            videoController.nextFrame();
+            this.getVideoController().nextFrame();
         } else if (id == R.id.button_previous_frame) {
-            videoController.previousFrame();
+            this.getVideoController().previousFrame();
         }
     }
 
     // ---------------------------------------------------------------------------------------------
     // Private Method
     // ---------------------------------------------------------------------------------------------
+
+    /**
+     * getVideoController
+     *
+     * @return video controller
+     */
+    private VideoController getVideoController() {
+        return InstanceHolder.getInstance().getVideoController();
+    }
 
     /**
      * hideSystemUI
@@ -218,9 +222,8 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        VideoController videoController = InstanceHolder.getInstance().getVideoController();
         Uri uri = data.getData();
-        if (!videoController.setVideo(uri)) {
+        if (!this.getVideoController().setVideo(uri)) {
             Toast.makeText(getApplication(), getString(R.string.toast_no_video), Toast.LENGTH_SHORT).show();
         }
     }
@@ -234,7 +237,7 @@ public class MainActivity extends AppCompatActivity {
         PermissionManager permissionManager = InstanceHolder.getInstance().getPermissionManager();
 
         if (permissionManager.getPermission(Manifest.permission.READ_EXTERNAL_STORAGE)) {
-            InstanceHolder.getInstance().getVideoController().join();
+            this.getVideoController().join();
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("video/*");
