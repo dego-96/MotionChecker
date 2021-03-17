@@ -10,6 +10,8 @@
     <string name="content_description_speed_down">Speed Down</string>
     <string name="content_description_next_frame">To Next Frame</string>
     <string name="content_description_previous_frame">To Previous Frame</string>
+    <string name="content_description_move_after">Move After</string>
+    <string name="content_description_move_before">Move Before</string>
     <string name="current_time_init">00:00:000</string>
     <string name="remain_time_init">--:--:---</string>
     <string-array name="play_speed_text">
@@ -19,6 +21,8 @@
         <item>x1/2</item>
         <item>x1/1</item>
     </string-array>
+    <string name="label_move_after">10秒進む</string>
+    <string name="label_move_before">10秒戻る</string>
 
     <!-- Toast -->
     <string name="toast_no_permission">動画を選択できません。\n外部ストレージへのアクセス権を許可して下さい。</string>

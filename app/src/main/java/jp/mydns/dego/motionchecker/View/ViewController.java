@@ -43,6 +43,10 @@ public class ViewController {
         R.id.button_speed_down,
         R.id.button_next_frame,
         R.id.button_previous_frame,
+        R.id.button_move_after,
+        R.id.label_move_after,
+        R.id.button_move_before,
+        R.id.label_move_before,
         R.id.seek_bar_playtime,
         R.id.text_view_current_time,
         R.id.text_view_remain_time,
@@ -60,6 +64,10 @@ public class ViewController {
         {0x08, 0x00, 0x04, 0x00, 0x00, 0x00},   /* button_speed_down */
         {0x08, 0x00, 0x04, 0x00, 0x00, 0x00},   /* button_next_frame */
         {0x08, 0x00, 0x04, 0x00, 0x00, 0x00},   /* button_previous_frame */
+        {0x08, 0x00, 0x04, 0x00, 0x00, 0x00},   /* button_move_after */
+        {0x08, 0x00, 0x04, 0x00, 0x00, 0x00},   /* label_move_after */
+        {0x08, 0x00, 0x04, 0x00, 0x00, 0x00},   /* button_move_before */
+        {0x08, 0x00, 0x04, 0x00, 0x00, 0x00},   /* label_move_before */
         {0x08, 0x00, 0x00, 0x00, 0x00, 0x00},   /* seek_bar_playtime */
         {0x08, 0x00, 0x00, 0x00, 0x00, 0x00},   /* text_view_current_time */
         {0x08, 0x00, 0x00, 0x00, 0x00, 0x00},   /* text_view_remain_time */
@@ -214,6 +222,17 @@ public class ViewController {
     }
 
     /**
+     * getDuration
+     *
+     * @return duration
+     */
+    public int getDuration() {
+        DebugLog.d(TAG, "getDuration");
+        SeekBar seekBar = (SeekBar) this.views.get(R.id.seek_bar_playtime);
+        return seekBar.getMax();
+    }
+
+    /**
      * setProgress
      *
      * @param progress progress
@@ -231,6 +250,17 @@ public class ViewController {
             DebugLog.e(TAG, "progress value error.");
             ((TextView) this.views.get(R.id.text_view_remain_time)).setText(InstanceHolder.getInstance().getText(R.string.remain_time_init));
         }
+    }
+
+    /**
+     * getProgress
+     *
+     * @return progress
+     */
+    public int getProgress() {
+        DebugLog.d(TAG, "getProgress");
+        SeekBar seekBar = (SeekBar) this.views.get(R.id.seek_bar_playtime);
+        return seekBar.getProgress();
     }
 
     /**
@@ -276,6 +306,11 @@ public class ViewController {
 
         ImageView nextImageView = (ImageView) this.views.get(R.id.button_next_frame);
         ImageView prevImageView = (ImageView) this.views.get(R.id.button_previous_frame);
+        ImageView moveAftImageView = (ImageView) this.views.get(R.id.button_move_after);
+        ImageView moveBfrImageView = (ImageView) this.views.get(R.id.button_move_before);
+        TextView textMoveAft = (TextView) this.views.get(R.id.label_move_after);
+        TextView textMoveBfr = (TextView) this.views.get(R.id.label_move_before);
+
 
         if (nextImageView == null ||
             prevImageView == null) {
@@ -287,12 +322,18 @@ public class ViewController {
             position == VideoDecoder.FramePosition.FIRST) {
             nextImageView.setEnabled(true);
             prevImageView.setEnabled(false);
+            moveAftImageView.setEnabled(true);
+            moveBfrImageView.setEnabled(false);
         } else if (position == VideoDecoder.FramePosition.MID) {
             nextImageView.setEnabled(true);
             prevImageView.setEnabled(true);
+            moveAftImageView.setEnabled(true);
+            moveBfrImageView.setEnabled(true);
         } else if (position == VideoDecoder.FramePosition.LAST) {
             nextImageView.setEnabled(false);
             prevImageView.setEnabled(true);
+            moveAftImageView.setEnabled(false);
+            moveBfrImageView.setEnabled(true);
         }
     }
 

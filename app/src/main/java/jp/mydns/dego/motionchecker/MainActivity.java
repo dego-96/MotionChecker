@@ -173,6 +173,10 @@ public class MainActivity extends AppCompatActivity {
             this.getVideoController().nextFrame();
         } else if (id == R.id.button_previous_frame) {
             this.getVideoController().previousFrame();
+        } else if (id == R.id.button_move_after) {
+            this.getVideoController().moveAfter();
+        } else if (id == R.id.button_move_before) {
+            this.getVideoController().moveBefore();
         }
     }
 

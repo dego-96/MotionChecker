@@ -14,6 +14,7 @@ public class VideoController {
     // constant values
     // ---------------------------------------------------------------------------------------------
     private static final String TAG = "VideoController";
+    private static final int MOVE_TIME = 10000;
 
     // ---------------------------------------------------------------------------------------------
     // private fields
@@ -304,6 +305,53 @@ public class VideoController {
 
         this.decoder.seekTo(progress);
         this.threadStart();
+    }
+
+    /**
+     * moveAfter
+     */
+    public void moveAfter() {
+        DebugLog.d(TAG, "moveAfter");
+        if (decoder.getStatus() == VideoDecoder.DecoderStatus.SEEKING) {
+            return;
+        }
+        if (this.videoThread != null && this.videoThread.isAlive()) {
+            try {
+                this.videoThread.join();
+            } catch (InterruptedException exception) {
+                exception.printStackTrace();
+            }
+        }
+
+        int progress = this.viewController.getProgress();
+        int duration = this.viewController.getDuration();
+        if (progress + MOVE_TIME < duration) {
+            this.decoder.seekTo(progress + MOVE_TIME);
+            this.threadStart();
+        }
+    }
+
+    /**
+     * moveBefore
+     */
+    public void moveBefore() {
+        DebugLog.d(TAG, "moveBefore");
+        if (decoder.getStatus() == VideoDecoder.DecoderStatus.SEEKING) {
+            return;
+        }
+        if (this.videoThread != null && this.videoThread.isAlive()) {
+            try {
+                this.videoThread.join();
+            } catch (InterruptedException exception) {
+                exception.printStackTrace();
+            }
+        }
+
+        int progress = this.viewController.getProgress();
+        if (progress - MOVE_TIME > 0) {
+            this.decoder.seekTo(progress - MOVE_TIME);
+            this.threadStart();
+        }
     }
 
     /**
