@@ -449,6 +449,7 @@ public class VideoDecoder implements Runnable {
      * @return is rendered
      */
     private boolean queueOutput(MediaCodec.BufferInfo info) {
+        DebugLog.d(TAG, "queueOutput");
         int outIndex = this.decoder.dequeueOutputBuffer(info, 10000);
         DebugLog.d(TAG_THREAD, "Output Buffer Index : " + outIndex);
 
@@ -461,13 +462,15 @@ public class VideoDecoder implements Runnable {
                 this.videoTimer.waitNext();
 
                 this.decoder.releaseOutputBuffer(outIndex, true);
+                this.videoTimer.setRenderTime();
+
                 if (this.position == FramePosition.INIT ||
                     this.position == FramePosition.RESTART) {
                     this.position = FramePosition.FIRST;
-                } else if (this.position == FramePosition.FIRST) {
+                } else if (this.position == FramePosition.FIRST ||
+                    this.position == FramePosition.LAST) {
                     this.position = FramePosition.MID;
                 }
-                this.videoTimer.setRenderTime();
 
                 if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
                     DebugLog.d(TAG_THREAD, "OutputBuffer BUFFER_FLAG_END_OF_STREAM");
