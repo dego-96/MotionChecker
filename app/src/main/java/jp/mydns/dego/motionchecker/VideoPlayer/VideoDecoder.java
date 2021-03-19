@@ -19,28 +19,32 @@ public class VideoDecoder implements Runnable {
     // ---------------------------------------------------------------------------------------------
     // inner class
     // ---------------------------------------------------------------------------------------------
-    private class VideoTimer {
+    private static class VideoTimer {
+        boolean isStarted;
         long startTime;
         long startTimeSys;
         long renderTime;
+        long lastKeyTime;
         long count;
         float speed;
-        boolean isInterrupted;
 
         VideoTimer() {
-            this.startTime = 0;
+            this.isStarted = false;
+            this.startTime = -1;
             this.startTimeSys = 0;
             this.renderTime = 0;
+            this.lastKeyTime = 0;
             this.count = 0;
             this.speed = 1.0f;
-            this.isInterrupted = false;
         }
 
-        void start() {
+        void start(MediaCodec.BufferInfo info) {
             this.renderTime = 0;
-            this.isInterrupted = false;
 
-            this.startTime = VideoDecoder.this.extractor.getSampleTime();
+            if (!this.isStarted) {
+                this.startTime = info.presentationTimeUs;
+                this.isStarted = true;
+            }
             this.startTimeSys = System.nanoTime() / 1000;
             this.count = 0;
 
@@ -50,13 +54,24 @@ public class VideoDecoder implements Runnable {
             DebugLog.v(TAG_THREAD, "----------------------------");
         }
 
-        void setRenderTime() {
-            this.renderTime = VideoDecoder.this.extractor.getSampleTime();
-            this.count++;
+        void pause() {
+            this.isStarted = false;
         }
 
-        void waitNext() {
+        void setRenderTime(MediaCodec.BufferInfo info) {
+            this.renderTime = info.presentationTimeUs;
+            this.count++;
+
+            if ((info.flags & MediaCodec.BUFFER_FLAG_KEY_FRAME) != 0) {
+                this.lastKeyTime = this.renderTime;
+            }
+        }
+
+        boolean waitNext() {
             DebugLog.d(TAG, "waitNext");
+            if (this.startTime < 0) {
+                return true;
+            }
             long elapsed;
             long waitTime = this.renderTime - this.startTime;
             do {
@@ -66,10 +81,11 @@ public class VideoDecoder implements Runnable {
                     Thread.sleep(1);
                 } catch (InterruptedException exception) {
                     exception.printStackTrace();
-                    this.isInterrupted = true;
+                    return false;
                 }
             } while (elapsed < waitTime);
             DebugLog.v(TAG, "end wait");
+            return true;
         }
     }
 
@@ -114,6 +130,9 @@ public class VideoDecoder implements Runnable {
     private MediaExtractor extractor;
     private VideoTimer videoTimer;
     private final VideoPlayerHandler handler;
+    private boolean isDecoding;
+    private int frameRate;
+    private long duration;
 
     // ---------------------------------------------------------------------------------------------
     // constructor
@@ -178,8 +197,10 @@ public class VideoDecoder implements Runnable {
                     exception.printStackTrace();
                 }
 
-                long duration = format.getLong(MediaFormat.KEY_DURATION);
-                this.videoListener.onDurationChanged((int) (duration / 1000));
+                this.duration = format.getLong(MediaFormat.KEY_DURATION);
+                this.videoListener.onDurationChanged((int) (this.duration / 1000));
+
+                this.frameRate = format.getInteger(MediaFormat.KEY_FRAME_RATE);
 
                 try {
                     DebugLog.d(TAG, "format: " + format);
@@ -198,6 +219,7 @@ public class VideoDecoder implements Runnable {
         }
 
         this.videoTimer = new VideoTimer();
+        this.isDecoding = false;
 
         if (restart) {
             this.position = FramePosition.RESTART;
@@ -273,6 +295,14 @@ public class VideoDecoder implements Runnable {
     void previous() {
         DebugLog.d(TAG, "previous");
         this.setStatus(DecoderStatus.PREVIOUS_FRAME, false);
+
+        this.decoder.flush();
+        if (this.videoTimer.lastKeyTime < 1 ||
+            this.videoTimer.lastKeyTime < this.videoTimer.renderTime) {
+            this.extractor.seekTo(this.videoTimer.lastKeyTime, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
+        } else {
+            this.extractor.seekTo(this.videoTimer.lastKeyTime - 1, MediaExtractor.SEEK_TO_PREVIOUS_SYNC);
+        }
     }
 
     /**
@@ -315,7 +345,7 @@ public class VideoDecoder implements Runnable {
                 this.nextFrame();
                 break;
             case PREVIOUS_FRAME:
-                this.setStatus(DecoderStatus.PAUSED, false);    // for debug
+                this.previousFrame();
                 break;
         }
     }
@@ -379,20 +409,21 @@ public class VideoDecoder implements Runnable {
     private void play() {
         DebugLog.d(TAG_THREAD, "play");
         this.setStatus(DecoderStatus.PLAYING, true);
+        this.isDecoding = true;
 
         MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
         boolean isEos = false;
-        this.videoTimer.start();
 
-        while (!Thread.currentThread().isInterrupted() && !this.videoTimer.isInterrupted) {
+        while (!Thread.currentThread().isInterrupted() && this.isDecoding) {
             if (!isEos) {
-                isEos = queueInput();
+                isEos = this.queueInput();
             }
 
-            queueOutput(info);
+            this.queueOutput(info);
 
         }
         this.setStatus(DecoderStatus.PAUSED, true);
+        this.videoTimer.pause();
     }
 
     /**
@@ -400,21 +431,54 @@ public class VideoDecoder implements Runnable {
      */
     private void nextFrame() {
         DebugLog.d(TAG_THREAD, "nextFrame");
+        this.isDecoding = true;
         MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
         boolean isEos = false;
-        this.videoTimer.start();
 
-        while (!Thread.currentThread().isInterrupted() && !this.videoTimer.isInterrupted) {
+        while (!Thread.currentThread().isInterrupted() && this.isDecoding) {
             if (!isEos) {
-                isEos = queueInput();
+                isEos = this.queueInput();
             }
 
-            boolean render = queueOutput(info);
-
-            if (render) {
+            if (this.queueOutput(info)) {
                 this.setStatus(DecoderStatus.PAUSED, true);
+                this.videoTimer.pause();
                 return;
             }
+        }
+    }
+
+    /**
+     * previousFrame
+     */
+    private void previousFrame() {
+        DebugLog.d(TAG_THREAD, "previousFrame");
+
+        MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
+        boolean isEos = false;
+
+        long targetTime;
+        if (this.position == FramePosition.LAST) {
+            targetTime = this.duration - (long) (1500000 / this.frameRate);
+        } else {
+            targetTime = this.videoTimer.renderTime - (long) (1500000 / this.frameRate);
+        }
+        DebugLog.v(TAG_THREAD, "target time : " + targetTime);
+
+        while (true) {
+            if (isEos) {
+                DebugLog.e(TAG_THREAD, "End of stream when move to previous frame");
+                return;
+            } else {
+                isEos = this.queueInput();
+            }
+
+            if (this.queueOutput(info, targetTime)) {
+                this.setStatus(DecoderStatus.PAUSED, true);
+                this.videoTimer.pause();
+                return;
+            }
+
         }
     }
 
@@ -453,16 +517,21 @@ public class VideoDecoder implements Runnable {
         int outIndex = this.decoder.dequeueOutputBuffer(info, 10000);
         DebugLog.d(TAG_THREAD, "Output Buffer Index : " + outIndex);
 
+        this.videoTimer.start(info);
+
         if (outIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
             DebugLog.d(TAG_THREAD, "INFO_OUTPUT_FORMAT_CHANGED");
         } else if (outIndex == MediaCodec.INFO_TRY_AGAIN_LATER) {
             DebugLog.d(TAG_THREAD, "INFO_TRY_AGAIN_LATER");
         } else {
             if (outIndex >= 0) {
-                this.videoTimer.waitNext();
+                if (!this.videoTimer.waitNext()) {
+                    this.isDecoding = false;
+                    return false;
+                }
 
                 this.decoder.releaseOutputBuffer(outIndex, true);
-                this.videoTimer.setRenderTime();
+                this.videoTimer.setRenderTime(info);
 
                 if (this.position == FramePosition.INIT ||
                     this.position == FramePosition.RESTART) {
@@ -476,7 +545,7 @@ public class VideoDecoder implements Runnable {
                     DebugLog.d(TAG_THREAD, "OutputBuffer BUFFER_FLAG_END_OF_STREAM");
                     this.position = FramePosition.LAST;
                     this.setStatus(DecoderStatus.PAUSED, true);
-                    this.videoTimer.isInterrupted = true;
+                    this.isDecoding = false;
                 }
 
                 DebugLog.v(TAG_THREAD, "presentationTimeUs : " + info.presentationTimeUs);
@@ -488,4 +557,44 @@ public class VideoDecoder implements Runnable {
         return false;
     }
 
+    /**
+     * queueOutput
+     *
+     * @param info   buffer info
+     * @param target render target time
+     * @return is rendered
+     */
+    private boolean queueOutput(MediaCodec.BufferInfo info, long target) {
+        DebugLog.d(TAG, "queueOutput");
+        int outIndex = this.decoder.dequeueOutputBuffer(info, 10000);
+        DebugLog.d(TAG_THREAD, "Output Buffer Index : " + outIndex);
+
+        if (outIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+            DebugLog.d(TAG_THREAD, "INFO_OUTPUT_FORMAT_CHANGED");
+        } else if (outIndex == MediaCodec.INFO_TRY_AGAIN_LATER) {
+            DebugLog.d(TAG_THREAD, "INFO_TRY_AGAIN_LATER");
+        } else {
+            if (outIndex >= 0) {
+                if (info.presentationTimeUs < target) {
+                    this.decoder.releaseOutputBuffer(outIndex, false);
+                } else {
+                    this.decoder.releaseOutputBuffer(outIndex, true);
+                    DebugLog.v(TAG_THREAD, "previous frame rendered.");
+
+                    if (this.position == FramePosition.LAST) {
+                        this.position = FramePosition.MID;
+                    } else if (info.presentationTimeUs < (1000 / this.frameRate)) {
+                        this.position = FramePosition.FIRST;
+                    }
+
+                    this.videoTimer.setRenderTime(info);
+                    DebugLog.v(TAG_THREAD, "presentationTimeUs : " + info.presentationTimeUs);
+                    this.sendMessage((long) ((float) info.presentationTimeUs * this.videoTimer.speed));
+
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }
