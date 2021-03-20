@@ -17,79 +17,6 @@ import jp.mydns.dego.motionchecker.Util.DebugLog;
 public class VideoDecoder implements Runnable {
 
     // ---------------------------------------------------------------------------------------------
-    // inner class
-    // ---------------------------------------------------------------------------------------------
-    private static class VideoTimer {
-        boolean isStarted;
-        long startTime;
-        long startTimeSys;
-        long renderTime;
-        long lastKeyTime;
-        long count;
-        float speed;
-
-        VideoTimer() {
-            this.isStarted = false;
-            this.startTime = -1;
-            this.startTimeSys = 0;
-            this.renderTime = 0;
-            this.lastKeyTime = 0;
-            this.count = 0;
-            this.speed = 1.0f;
-        }
-
-        void start(MediaCodec.BufferInfo info) {
-            this.renderTime = 0;
-
-            if (!this.isStarted) {
-                this.startTime = info.presentationTimeUs;
-                this.isStarted = true;
-            }
-            this.startTimeSys = System.nanoTime() / 1000;
-            this.count = 0;
-
-            DebugLog.v(TAG_THREAD, "-------- start time --------");
-            DebugLog.v(TAG_THREAD, "system : " + this.startTimeSys);
-            DebugLog.v(TAG_THREAD, "video  : " + this.startTime);
-            DebugLog.v(TAG_THREAD, "----------------------------");
-        }
-
-        void pause() {
-            this.isStarted = false;
-        }
-
-        void setRenderTime(MediaCodec.BufferInfo info) {
-            this.renderTime = info.presentationTimeUs;
-            this.count++;
-
-            if ((info.flags & MediaCodec.BUFFER_FLAG_KEY_FRAME) != 0) {
-                this.lastKeyTime = this.renderTime;
-            }
-        }
-
-        boolean waitNext() {
-            DebugLog.d(TAG, "waitNext");
-            if (this.startTime < 0) {
-                return true;
-            }
-            long elapsed;
-            long waitTime = this.renderTime - this.startTime;
-            do {
-                // 再生速度に合わせてシステム時間の経過スピードを変える
-                elapsed = (long) ((System.nanoTime() / 1000.0f - (float) this.startTimeSys) * this.speed);
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException exception) {
-                    exception.printStackTrace();
-                    return false;
-                }
-            } while (elapsed < waitTime);
-            DebugLog.v(TAG, "end wait");
-            return true;
-        }
-    }
-
-    // ---------------------------------------------------------------------------------------------
     // public constant values
     // ---------------------------------------------------------------------------------------------
     /* video status */
@@ -157,25 +84,27 @@ public class VideoDecoder implements Runnable {
      *
      * @param video   video
      * @param surface surface
+     * @param speed   video speed
      * @return initialization result
      */
-    boolean init(Video video, Surface surface) {
+    boolean init(Video video, Surface surface, float speed) {
         DebugLog.d(TAG, "init");
 
         this.setStatus(DecoderStatus.INIT, false);
         this.surface = surface;
 
-        return this.prepare(video, false);
+        return this.prepare(video, speed, false);
     }
 
     /**
      * prepare
      *
      * @param video   video
+     * @param speed   video speed
      * @param restart restart
      * @return prepare result
      */
-    public boolean prepare(Video video, boolean restart) {
+    public boolean prepare(Video video, float speed, boolean restart) {
         DebugLog.d(TAG, "prepare");
         this.extractor = new MediaExtractor();
         try {
@@ -218,8 +147,7 @@ public class VideoDecoder implements Runnable {
             return false;
         }
 
-        this.videoTimer = new VideoTimer();
-        this.isDecoding = false;
+        this.videoTimer = new VideoTimer(speed);
 
         if (restart) {
             this.position = FramePosition.RESTART;
@@ -265,7 +193,7 @@ public class VideoDecoder implements Runnable {
      * @param speed video play speed
      */
     void setSpeed(float speed) {
-        this.videoTimer.speed = speed;
+        this.videoTimer.setSpeed(speed);
     }
 
     /**
@@ -297,11 +225,11 @@ public class VideoDecoder implements Runnable {
         this.setStatus(DecoderStatus.PREVIOUS_FRAME, false);
 
         this.decoder.flush();
-        if (this.videoTimer.lastKeyTime < 1 ||
-            this.videoTimer.lastKeyTime < this.videoTimer.renderTime) {
-            this.extractor.seekTo(this.videoTimer.lastKeyTime, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
+        if (this.videoTimer.getKeyFrameTime() < 1 ||
+            this.videoTimer.getKeyFrameTime() < this.videoTimer.getRenderTime()) {
+            this.extractor.seekTo(this.videoTimer.getKeyFrameTime(), MediaExtractor.SEEK_TO_CLOSEST_SYNC);
         } else {
-            this.extractor.seekTo(this.videoTimer.lastKeyTime - 1, MediaExtractor.SEEK_TO_PREVIOUS_SYNC);
+            this.extractor.seekTo(this.videoTimer.getKeyFrameTime() - 1000, MediaExtractor.SEEK_TO_PREVIOUS_SYNC);
         }
     }
 
@@ -409,11 +337,11 @@ public class VideoDecoder implements Runnable {
     private void play() {
         DebugLog.d(TAG_THREAD, "play");
         this.setStatus(DecoderStatus.PLAYING, true);
-        this.isDecoding = true;
 
         MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
         boolean isEos = false;
 
+        this.isDecoding = true;
         while (!Thread.currentThread().isInterrupted() && this.isDecoding) {
             if (!isEos) {
                 isEos = this.queueInput();
@@ -421,9 +349,18 @@ public class VideoDecoder implements Runnable {
 
             this.queueOutput(info);
 
+            if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+                DebugLog.d(TAG_THREAD, "OutputBuffer BUFFER_FLAG_END_OF_STREAM");
+                this.position = FramePosition.LAST;
+                this.isDecoding = false;
+            }
+
+            DebugLog.v(TAG_THREAD, "presentationTimeUs : " + info.presentationTimeUs);
+            this.sendMessage((long) ((float) info.presentationTimeUs * this.videoTimer.getSpeed()));
         }
         this.setStatus(DecoderStatus.PAUSED, true);
-        this.videoTimer.pause();
+        this.videoTimer.timerStop();
+        this.isDecoding = false;
     }
 
     /**
@@ -431,21 +368,29 @@ public class VideoDecoder implements Runnable {
      */
     private void nextFrame() {
         DebugLog.d(TAG_THREAD, "nextFrame");
-        this.isDecoding = true;
         MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
         boolean isEos = false;
 
+        this.isDecoding = true;
         while (!Thread.currentThread().isInterrupted() && this.isDecoding) {
             if (!isEos) {
                 isEos = this.queueInput();
             }
 
             if (this.queueOutput(info)) {
-                this.setStatus(DecoderStatus.PAUSED, true);
-                this.videoTimer.pause();
-                return;
+                this.videoTimer.timerStop();
+                this.isDecoding = false;
+            }
+
+            if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+                DebugLog.d(TAG_THREAD, "OutputBuffer BUFFER_FLAG_END_OF_STREAM");
+                this.position = FramePosition.LAST;
+                this.isDecoding = false;
             }
         }
+        DebugLog.v(TAG_THREAD, "presentationTimeUs : " + info.presentationTimeUs);
+        this.sendMessage((long) ((float) info.presentationTimeUs * this.videoTimer.getSpeed()));
+        this.setStatus(DecoderStatus.PAUSED, true);
     }
 
     /**
@@ -461,7 +406,7 @@ public class VideoDecoder implements Runnable {
         if (this.position == FramePosition.LAST) {
             targetTime = this.duration - (long) (1500000 / this.frameRate);
         } else {
-            targetTime = this.videoTimer.renderTime - (long) (1500000 / this.frameRate);
+            targetTime = this.videoTimer.getRenderTime() - (long) (1500000 / this.frameRate);
         }
         DebugLog.v(TAG_THREAD, "target time : " + targetTime);
 
@@ -475,10 +420,9 @@ public class VideoDecoder implements Runnable {
 
             if (this.queueOutput(info, targetTime)) {
                 this.setStatus(DecoderStatus.PAUSED, true);
-                this.videoTimer.pause();
+                this.videoTimer.timerStop();
                 return;
             }
-
         }
     }
 
@@ -494,7 +438,7 @@ public class VideoDecoder implements Runnable {
             ByteBuffer buffer = this.decoder.getInputBuffer(inIndex);
             int sampleSize = (buffer != null) ? this.extractor.readSampleData(buffer, 0) : -1;
             if (sampleSize >= 0) {
-                long time = (long) ((float) this.extractor.getSampleTime() / this.videoTimer.speed);
+                long time = (long) ((float) this.extractor.getSampleTime() / this.videoTimer.getSpeed());
                 this.decoder.queueInputBuffer(inIndex, 0, sampleSize, time, 0);
                 this.extractor.advance();
             } else {
@@ -513,11 +457,11 @@ public class VideoDecoder implements Runnable {
      * @return is rendered
      */
     private boolean queueOutput(MediaCodec.BufferInfo info) {
-        DebugLog.d(TAG, "queueOutput");
+        DebugLog.d(TAG_THREAD, "queueOutput");
         int outIndex = this.decoder.dequeueOutputBuffer(info, 10000);
         DebugLog.d(TAG_THREAD, "Output Buffer Index : " + outIndex);
 
-        this.videoTimer.start(info);
+        this.videoTimer.timerStart(info);
 
         if (outIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
             DebugLog.d(TAG_THREAD, "INFO_OUTPUT_FORMAT_CHANGED");
@@ -540,16 +484,6 @@ public class VideoDecoder implements Runnable {
                     this.position == FramePosition.LAST) {
                     this.position = FramePosition.MID;
                 }
-
-                if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
-                    DebugLog.d(TAG_THREAD, "OutputBuffer BUFFER_FLAG_END_OF_STREAM");
-                    this.position = FramePosition.LAST;
-                    this.setStatus(DecoderStatus.PAUSED, true);
-                    this.isDecoding = false;
-                }
-
-                DebugLog.v(TAG_THREAD, "presentationTimeUs : " + info.presentationTimeUs);
-                this.sendMessage((long) ((float) info.presentationTimeUs * this.videoTimer.speed));
 
                 return true;
             }
@@ -589,7 +523,7 @@ public class VideoDecoder implements Runnable {
 
                     this.videoTimer.setRenderTime(info);
                     DebugLog.v(TAG_THREAD, "presentationTimeUs : " + info.presentationTimeUs);
-                    this.sendMessage((long) ((float) info.presentationTimeUs * this.videoTimer.speed));
+                    this.sendMessage((long) ((float) info.presentationTimeUs * this.videoTimer.getSpeed()));
 
                     return true;
                 }

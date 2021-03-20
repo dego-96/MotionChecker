@@ -51,6 +51,7 @@ public class ViewController {
         R.id.text_view_current_time,
         R.id.text_view_remain_time,
         R.id.text_view_speed,
+        R.id.frame_control_area,
     };
     private final int[][] visibilityTable = {
         /* 0x00:VISIBLE,  0x04:INVISIBLE,  0x08:GONE */
@@ -72,6 +73,7 @@ public class ViewController {
         {0x08, 0x00, 0x00, 0x00, 0x00, 0x00},   /* text_view_current_time */
         {0x08, 0x00, 0x00, 0x00, 0x00, 0x00},   /* text_view_remain_time */
         {0x08, 0x00, 0x00, 0x00, 0x00, 0x00},   /* text_view_speed */
+        {0x08, 0x04, 0x04, 0x04, 0x04, 0x04},   /* frame_control_area */
     };
 
     // ---------------------------------------------------------------------------------------------
@@ -308,8 +310,8 @@ public class ViewController {
         ImageView prevImageView = (ImageView) this.views.get(R.id.button_previous_frame);
         ImageView moveAftImageView = (ImageView) this.views.get(R.id.button_move_after);
         ImageView moveBfrImageView = (ImageView) this.views.get(R.id.button_move_before);
-        TextView textMoveAft = (TextView) this.views.get(R.id.label_move_after);
-        TextView textMoveBfr = (TextView) this.views.get(R.id.label_move_before);
+//        TextView textMoveAft = (TextView) this.views.get(R.id.label_move_after);
+//        TextView textMoveBfr = (TextView) this.views.get(R.id.label_move_before);
 
 
         if (nextImageView == null ||
@@ -331,9 +333,9 @@ public class ViewController {
             moveBfrImageView.setEnabled(true);
         } else if (position == VideoDecoder.FramePosition.LAST) {
             nextImageView.setEnabled(false);
-            prevImageView.setEnabled(true);
+            prevImageView.setEnabled(false);
             moveAftImageView.setEnabled(false);
-            moveBfrImageView.setEnabled(true);
+            moveBfrImageView.setEnabled(false);
         }
     }
 

@@ -217,10 +217,7 @@ public class VideoController {
         }
 
         this.decoder.release();
-        this.decoder.prepare(this.video, false);
-
-        // prepareで再生速度が初期化されるので再設定
-        this.decoder.setSpeed(this.speedManager.getSpeed());
+        this.decoder.prepare(this.video, this.speedManager.getSpeed(), false);
 
         this.threadStart();
     }
@@ -379,7 +376,7 @@ public class VideoController {
         }
 
         if (this.video != null && surface != null) {
-            if (this.decoder.init(this.video, surface)) {
+            if (this.decoder.init(this.video, surface, this.speedManager.getSpeed())) {
                 this.threadStart();
             }
         }
@@ -393,7 +390,7 @@ public class VideoController {
 
         if (this.decoder.getFramePosition() == VideoDecoder.FramePosition.LAST) {
             this.decoder.release();
-            if (this.decoder.prepare(this.video, true)) {
+            if (this.decoder.prepare(this.video, this.speedManager.getSpeed(), true)) {
                 this.threadStart();
             }
         } else {

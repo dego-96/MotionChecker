@@ -136,7 +136,6 @@
                 android:id="@+id/layout_frame_control"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp"
                 android:baselineAligned="false"
                 android:orientation="horizontal">
 
@@ -146,6 +145,7 @@
                     android:layout_width="30dp"
                     android:layout_height="50dp"
                     android:layout_gravity="start"
+                    android:layout_marginVertical="10dp"
                     android:layout_marginStart="10dp"
                     android:clickable="false"
                     android:contentDescription="@string/content_description_previous_frame"
@@ -154,10 +154,17 @@
                     android:src="@drawable/button_previous_frame"
                     android:visibility="invisible" />
 
-                <Space
+                <!-- Frame Control Area -->
+                <ImageView
+                    android:id="@+id/frame_control_area"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1" />
+                    android:layout_height="50dp"
+                    android:layout_marginHorizontal="10dp"
+                    android:layout_weight="1"
+                    android:contentDescription="@string/content_description_frame_control_area"
+                    android:scaleType="fitXY"
+                    android:src="@drawable/frame_control_area"
+                    android:visibility="invisible" />
 
                 <!-- Next Frame -->
                 <ImageView
@@ -165,6 +172,7 @@
                     android:layout_width="30dp"
                     android:layout_height="50dp"
                     android:layout_gravity="end"
+                    android:layout_marginVertical="5dp"
                     android:layout_marginEnd="10dp"
                     android:clickable="false"
                     android:contentDescription="@string/content_description_next_frame"
