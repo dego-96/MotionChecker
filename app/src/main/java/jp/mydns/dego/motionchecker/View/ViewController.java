@@ -125,7 +125,7 @@ public class ViewController {
         this.display = display;
 
         if (this.views != null) {
-            ((VideoSurfaceView) this.views.get(R.id.video_surface_view)).setDisplay(display);
+            ((VideoSurfaceView) this.views.get(R.id.video_surface_view)).bindDisplay(display);
         }
     }
 
@@ -177,7 +177,7 @@ public class ViewController {
         DebugLog.v(TAG, "video rotation : " + rotation);
 
         Point point = new Point();
-        this.display.getSize(point);
+        this.display.getRealSize(point);
         int displayW = point.x;
         int displayH = point.y;
         boolean isLandscape = ((rotation / 90) % 2 == 0);
@@ -203,7 +203,7 @@ public class ViewController {
                 calcH = displayH;
             } else {
                 // 画面より横長
-                calcW = displayH;
+                calcW = displayW;
                 calcH = (int) ((float) width * ((float) displayW / (float) height));
             }
         }

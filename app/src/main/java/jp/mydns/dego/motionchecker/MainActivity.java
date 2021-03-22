@@ -45,6 +45,12 @@ public class MainActivity extends AppCompatActivity {
         DebugLog.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        this.getVideoController().setViews(this);
+        this.getVideoController().bindDisplay(this.getWindowManager().getDefaultDisplay());
+        if (!this.getVideoController().isVideoStandby()) {
+            this.getVideoController().setVisibilities(VideoDecoder.DecoderStatus.INIT);
+        }
     }
 
     /**
@@ -55,13 +61,6 @@ public class MainActivity extends AppCompatActivity {
         DebugLog.d(TAG, "onStart");
         super.onStart();
         this.hideSystemUI();
-
-        this.getVideoController().setViews(this);
-        this.getVideoController().bindDisplay(this.getWindowManager().getDefaultDisplay());
-
-        if (!this.getVideoController().isVideoStandby()) {
-            this.getVideoController().setVisibilities(VideoDecoder.DecoderStatus.INIT);
-        }
     }
 
     /**

@@ -29,7 +29,7 @@ public class VideoSurfaceView extends SurfaceView implements SurfaceHolder.Callb
 
         private LayoutInfo(Display display) {
             Point outSize = new Point();
-            display.getSize(outSize);
+            display.getRealSize(outSize);
             this.displaySize = new Rect(0, 0, outSize.x, outSize.y);
             this.center = new Point(outSize.x / 2, outSize.y / 2);
             DebugLog.v(TAG, "display center : (" + this.center.x + ", " + this.center.y + ")");
@@ -227,12 +227,12 @@ public class VideoSurfaceView extends SurfaceView implements SurfaceHolder.Callb
     }
 
     /**
-     * setDisplay
+     * bindDisplay
      *
      * @param display display
      */
-    void setDisplay(Display display) {
-        DebugLog.d(TAG, "setDisplay");
+    void bindDisplay(Display display) {
+        DebugLog.d(TAG, "bindDisplay");
 
         if (this.layoutInfo == null) {
             this.layoutInfo = new LayoutInfo(display);
