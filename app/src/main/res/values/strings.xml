@@ -13,6 +13,7 @@
     <string name="content_description_move_after">Move After</string>
     <string name="content_description_move_before">Move Before</string>
     <string name="content_description_frame_control_area">Frame Control Area</string>
+    <string name="content_description_rotate">Rotate Clockwise</string>
     <string name="current_time_init">00:00:000</string>
     <string name="remain_time_init">--:--:---</string>
     <string-array name="play_speed_text">

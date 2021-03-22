@@ -45,6 +45,20 @@
             android:src="@drawable/button_gallery"
             android:visibility="visible" />
 
+        <!-- Rotate Button -->
+        <ImageView
+            android:id="@+id/button_rotate"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_margin="10dp"
+            android:clickable="true"
+            android:layout_gravity="end"
+            android:contentDescription="@string/content_description_rotate"
+            android:focusable="true"
+            android:onClick="onButtonClicked"
+            android:src="@drawable/button_video_rotate"
+            android:visibility="invisible" />
+
         <LinearLayout
             android:id="@+id/layout_video_controller"
             android:layout_width="match_parent"

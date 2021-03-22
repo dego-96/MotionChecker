@@ -52,6 +52,7 @@ public class ViewController {
         R.id.text_view_remain_time,
         R.id.text_view_speed,
         R.id.frame_control_area,
+        R.id.button_rotate
     };
     private final int[][] visibilityTable = {
         /* 0x00:VISIBLE,  0x04:INVISIBLE,  0x08:GONE */
@@ -74,6 +75,7 @@ public class ViewController {
         {0x08, 0x00, 0x00, 0x00, 0x00, 0x00},   /* text_view_remain_time */
         {0x08, 0x00, 0x00, 0x00, 0x00, 0x00},   /* text_view_speed */
         {0x08, 0x04, 0x04, 0x04, 0x04, 0x04},   /* frame_control_area */
+        {0x08, 0x04, 0x04, 0x04, 0x04, 0x04},   /* button_rotate */
     };
 
     // ---------------------------------------------------------------------------------------------

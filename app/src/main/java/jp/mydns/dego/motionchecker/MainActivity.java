@@ -176,6 +176,8 @@ public class MainActivity extends AppCompatActivity {
             this.getVideoController().moveAfter();
         } else if (id == R.id.button_move_before) {
             this.getVideoController().moveBefore();
+//        } else if (id == R.id.button_rotate) {
+//            this.getVideoController().rotate();
         }
     }
 
