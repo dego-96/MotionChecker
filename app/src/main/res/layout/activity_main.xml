@@ -50,9 +50,9 @@
             android:id="@+id/button_rotate"
             android:layout_width="50dp"
             android:layout_height="50dp"
+            android:layout_gravity="end"
             android:layout_margin="10dp"
             android:clickable="true"
-            android:layout_gravity="end"
             android:contentDescription="@string/content_description_rotate"
             android:focusable="true"
             android:onClick="onButtonClicked"
@@ -169,7 +169,7 @@
                     android:visibility="invisible" />
 
                 <!-- Frame Control Area -->
-                <ImageView
+                <jp.mydns.dego.motionchecker.View.FrameControlAreaView
                     android:id="@+id/frame_control_area"
                     android:layout_width="0dp"
                     android:layout_height="50dp"
