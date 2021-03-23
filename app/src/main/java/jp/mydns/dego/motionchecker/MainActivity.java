@@ -70,6 +70,11 @@ public class MainActivity extends AppCompatActivity {
     public void onResume() {
         DebugLog.d(TAG, "onResume");
         super.onResume();
+
+        Uri uri = this.getIntent().getData();
+        if (uri != null && !this.getVideoController().setVideo(uri)) {
+            Toast.makeText(getApplication(), getString(R.string.toast_no_video), Toast.LENGTH_SHORT).show();
+        }
     }
 
     /**
