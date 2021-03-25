@@ -72,8 +72,12 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
 
         Uri uri = this.getIntent().getData();
-        if (uri != null && !this.getVideoController().setVideo(uri)) {
-            Toast.makeText(getApplication(), getString(R.string.toast_no_video), Toast.LENGTH_SHORT).show();
+        if (uri != null) {
+            if (this.getVideoController().setVideo(uri)) {
+                DebugLog.v(TAG, "video standby");
+            } else {
+                Toast.makeText(getApplication(), getString(R.string.toast_no_video), Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
@@ -233,7 +237,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         Uri uri = data.getData();
-        if (!this.getVideoController().setVideo(uri)) {
+        if (this.getVideoController().setVideo(uri)) {
+            DebugLog.v(TAG, "video standby");
+        } else {
             Toast.makeText(getApplication(), getString(R.string.toast_no_video), Toast.LENGTH_SHORT).show();
         }
     }

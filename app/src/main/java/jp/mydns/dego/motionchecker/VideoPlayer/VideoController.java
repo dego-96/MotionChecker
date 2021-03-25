@@ -130,6 +130,7 @@ public class VideoController {
         DebugLog.d(TAG, "setVideo");
 
         if (uri == null) {
+            this.video = null;
             return false;
         }
 
@@ -358,6 +359,13 @@ public class VideoController {
      */
     public int getSpeedLevel() {
         return this.speedManager.getSpeedLevel();
+    }
+
+    /**
+     * animFullscreenPreview
+     */
+    public void animFullscreenPreview() {
+        this.viewController.animFullscreenPreview();
     }
 
     // ---------------------------------------------------------------------------------------------

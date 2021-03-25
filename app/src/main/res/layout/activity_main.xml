@@ -9,9 +9,7 @@
         android:id="@+id/main_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@android:color/background_dark"
-        tools:layout_editor_absoluteX="-97dp"
-        tools:layout_editor_absoluteY="-33dp">
+        android:background="@android:color/background_dark">
 
         <jp.mydns.dego.motionchecker.View.VideoSurfaceView
             android:id="@+id/video_surface_view"

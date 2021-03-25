@@ -135,6 +135,7 @@ public class VideoSurfaceView extends SurfaceView implements SurfaceHolder.Callb
     public boolean performClick() {
         DebugLog.d(TAG, "performClick");
         super.performClick();
+        InstanceHolder.getInstance().getVideoController().animFullscreenPreview();
         return false;
     }
 

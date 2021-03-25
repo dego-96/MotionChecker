@@ -1,5 +1,8 @@
 package jp.mydns.dego.motionchecker.View;
 
+import android.animation.Animator;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.graphics.Point;
 import android.util.SparseArray;
@@ -10,7 +13,9 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import jp.mydns.dego.motionchecker.InstanceHolder;
@@ -26,6 +31,15 @@ public class ViewController {
     // constant values
     // ---------------------------------------------------------------------------------------------
     private static final String TAG = "ViewController";
+    private static final int ANIMATOR_DURATION = 300;
+
+    private enum AnimationDirection {
+        None,
+        Left,
+        Up,
+        Right,
+        Down
+    }
 
     // ---------------------------------------------------------------------------------------------
     // private fields
@@ -77,6 +91,29 @@ public class ViewController {
         {0x08, 0x00, 0x04, 0x00, 0x00, 0x00},   /* frame_control_area */
         {0x08, 0x04, 0x04, 0x04, 0x04, 0x04},   /* button_rotate */
     };
+    private final AnimationDirection[] animSide = {
+        /* 0:no animation,  1:left,  2:up,  3:right,  4:down */
+        AnimationDirection.None,    /* video_surface_view */
+        AnimationDirection.None,    /* image_no_video */
+        AnimationDirection.Up,      /* button_gallery */
+        AnimationDirection.Down,    /* button_play */
+        AnimationDirection.Down,    /* button_stop */
+        AnimationDirection.Down,    /* button_speed_up */
+        AnimationDirection.Down,    /* button_speed_down */
+        AnimationDirection.Down,    /* button_next_frame */
+        AnimationDirection.Down,    /* button_previous_frame */
+        AnimationDirection.Down,    /* button_move_after */
+        AnimationDirection.Down,    /* label_move_after */
+        AnimationDirection.Down,    /* button_move_before */
+        AnimationDirection.Down,    /* label_move_before */
+        AnimationDirection.Down,    /* seek_bar_playtime */
+        AnimationDirection.Down,    /* text_view_current_time */
+        AnimationDirection.Down,    /* text_view_remain_time */
+        AnimationDirection.Down,    /* text_view_speed */
+        AnimationDirection.Down,    /* frame_control_area */
+        AnimationDirection.Up,      /* button_rotate */
+    };
+    private boolean isFullScreenPreview;
 
     // ---------------------------------------------------------------------------------------------
     // constructor
@@ -90,6 +127,7 @@ public class ViewController {
 
         this.display = null;
         this.views = null;
+        this.isFullScreenPreview = false;
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -339,6 +377,52 @@ public class ViewController {
             moveAftImageView.setEnabled(false);
             moveBfrImageView.setEnabled(false);
         }
+    }
+
+    /**
+     * animFullscreenPreview
+     */
+    public void animFullscreenPreview() {
+        DebugLog.d(TAG, "fullScreenAnimationStart");
+
+        float toY1, fromY1;
+        float toY2, fromY2;
+        List<Animator> animatorList = new ArrayList<>();
+
+        if (this.isFullScreenPreview) {
+            // animation (frame in)
+            fromY1 = -300.0f;
+            toY1 = 0.0f;
+            fromY2 = 300.0f;
+            toY2 = 0.0f;
+        } else {
+            // animation (frame out)
+            fromY1 = 0.0f;
+            toY1 = -300.0f;
+            fromY2 = 0.0f;
+            toY2 = 300.0f;
+        }
+        this.isFullScreenPreview = !this.isFullScreenPreview;
+
+        for (int index = 0; index < this.viewIdList.length; index++) {
+            View view = this.views.get(this.viewIdList[index]);
+            AnimationDirection direction = this.animSide[index];
+            if (direction == AnimationDirection.Up) {
+                animatorList.add(
+                    ObjectAnimator.ofFloat(view, "translationY", fromY1, toY1)
+                        .setDuration(ANIMATOR_DURATION)
+                );
+            } else if (direction == AnimationDirection.Down) {
+                animatorList.add(
+                    ObjectAnimator.ofFloat(view, "translationY", fromY2, toY2)
+                        .setDuration(ANIMATOR_DURATION)
+                );
+            }
+        }
+
+        AnimatorSet animatorSet = new AnimatorSet();
+        animatorSet.playTogether(animatorList);
+        animatorSet.start();
     }
 
     // ---------------------------------------------------------------------------------------------
