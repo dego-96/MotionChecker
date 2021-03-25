@@ -262,15 +262,11 @@ public class VideoDecoder implements Runnable {
                 // Nothing to do.
                 break;
             case PAUSED:
-                if (this.position == FramePosition.INIT) {
-                    this.nextFrame();
-                } else {
-                    this.play();
-                }
+                this.play(this.position == FramePosition.INIT);
                 break;
             case NEXT_FRAME:
             case SEEKING:
-                this.nextFrame();
+                this.play(true);
                 break;
             case PREVIOUS_FRAME:
                 this.previousFrame();
@@ -334,9 +330,11 @@ public class VideoDecoder implements Runnable {
     /**
      * play
      */
-    private void play() {
+    private void play(boolean oneFrame) {
         DebugLog.d(TAG_THREAD, "play");
-        this.setStatus(DecoderStatus.PLAYING, true);
+        if (!oneFrame) {
+            this.setStatus(DecoderStatus.PLAYING, true);
+        }
 
         MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
         boolean isEos = false;
@@ -347,11 +345,16 @@ public class VideoDecoder implements Runnable {
                 isEos = this.queueInput();
             }
 
-            this.queueOutput(info);
+            boolean render = this.queueOutput(info);
 
             if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
                 DebugLog.d(TAG_THREAD, "OutputBuffer BUFFER_FLAG_END_OF_STREAM");
                 this.position = FramePosition.LAST;
+                this.isDecoding = false;
+            }
+
+            if (oneFrame && render) {
+                this.videoTimer.timerStop();
                 this.isDecoding = false;
             }
 
@@ -361,36 +364,6 @@ public class VideoDecoder implements Runnable {
         this.setStatus(DecoderStatus.PAUSED, true);
         this.videoTimer.timerStop();
         this.isDecoding = false;
-    }
-
-    /**
-     * nextFrame
-     */
-    private void nextFrame() {
-        DebugLog.d(TAG_THREAD, "nextFrame");
-        MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
-        boolean isEos = false;
-
-        this.isDecoding = true;
-        while (!Thread.currentThread().isInterrupted() && this.isDecoding) {
-            if (!isEos) {
-                isEos = this.queueInput();
-            }
-
-            if (this.queueOutput(info)) {
-                this.videoTimer.timerStop();
-                this.isDecoding = false;
-            }
-
-            if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
-                DebugLog.d(TAG_THREAD, "OutputBuffer BUFFER_FLAG_END_OF_STREAM");
-                this.position = FramePosition.LAST;
-                this.isDecoding = false;
-            }
-        }
-        DebugLog.v(TAG_THREAD, "presentationTimeUs : " + info.presentationTimeUs);
-        this.sendMessage((long) ((float) info.presentationTimeUs * this.videoTimer.getSpeed()));
-        this.setStatus(DecoderStatus.PAUSED, true);
     }
 
     /**

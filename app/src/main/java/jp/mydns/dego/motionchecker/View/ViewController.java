@@ -292,6 +292,8 @@ public class ViewController {
             DebugLog.e(TAG, "progress value error.");
             ((TextView) this.views.get(R.id.text_view_remain_time)).setText(InstanceHolder.getInstance().getText(R.string.remain_time_init));
         }
+
+        this.update10SecAfterBeforeViews(progress);
     }
 
     /**
@@ -348,11 +350,6 @@ public class ViewController {
 
         ImageView nextImageView = (ImageView) this.views.get(R.id.button_next_frame);
         ImageView prevImageView = (ImageView) this.views.get(R.id.button_previous_frame);
-        ImageView moveAftImageView = (ImageView) this.views.get(R.id.button_move_after);
-        ImageView moveBfrImageView = (ImageView) this.views.get(R.id.button_move_before);
-//        TextView textMoveAft = (TextView) this.views.get(R.id.label_move_after);
-//        TextView textMoveBfr = (TextView) this.views.get(R.id.label_move_before);
-
 
         if (nextImageView == null ||
             prevImageView == null) {
@@ -364,18 +361,12 @@ public class ViewController {
             position == VideoDecoder.FramePosition.FIRST) {
             nextImageView.setEnabled(true);
             prevImageView.setEnabled(false);
-            moveAftImageView.setEnabled(true);
-            moveBfrImageView.setEnabled(false);
         } else if (position == VideoDecoder.FramePosition.MID) {
             nextImageView.setEnabled(true);
             prevImageView.setEnabled(true);
-            moveAftImageView.setEnabled(true);
-            moveBfrImageView.setEnabled(true);
         } else if (position == VideoDecoder.FramePosition.LAST) {
             nextImageView.setEnabled(false);
             prevImageView.setEnabled(false);
-            moveAftImageView.setEnabled(false);
-            moveBfrImageView.setEnabled(false);
         }
     }
 
@@ -446,6 +437,47 @@ public class ViewController {
             }
         } else {
             DebugLog.e(TAG, "get image view resource error.");
+        }
+    }
+
+    /**
+     * update10SecAfterBeforeViews
+     *
+     * @param progress progress
+     */
+    private void update10SecAfterBeforeViews(int progress) {
+        DebugLog.d(TAG, "update10SecAfterBeforeViews");
+        int duration = this.getDuration();
+
+        ImageView moveAftImageView = (ImageView) this.views.get(R.id.button_move_after);
+        ImageView moveBfrImageView = (ImageView) this.views.get(R.id.button_move_before);
+        TextView textMoveAft = (TextView) this.views.get(R.id.label_move_after);
+        TextView textMoveBfr = (TextView) this.views.get(R.id.label_move_before);
+
+        if (moveAftImageView == null ||
+            moveBfrImageView == null ||
+            textMoveAft == null ||
+            textMoveBfr == null) {
+            DebugLog.e(TAG, "get view error.");
+            return;
+        }
+
+        // 10秒未満の場合は10秒戻るボタンを無効化
+        if (progress < 10000) {
+            moveBfrImageView.setEnabled(false);
+            textMoveBfr.setEnabled(false);
+        } else {
+            moveBfrImageView.setEnabled(true);
+            textMoveBfr.setEnabled(true);
+        }
+
+        // 残り時間が10秒未満の場合は10秒進むボタンを無効化
+        if (duration - progress < 10000) {
+            moveAftImageView.setEnabled(false);
+            textMoveAft.setEnabled(false);
+        } else {
+            moveAftImageView.setEnabled(true);
+            textMoveAft.setEnabled(true);
         }
     }
 }
