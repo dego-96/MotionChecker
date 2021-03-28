@@ -32,6 +32,7 @@ public class ViewController {
     // ---------------------------------------------------------------------------------------------
     private static final String TAG = "ViewController";
     private static final int ANIMATOR_DURATION = 300;
+    private static final float ANIMATION_DISTANCE = 1000.0f;
 
     private enum AnimationDirection {
         None,
@@ -72,6 +73,7 @@ public class ViewController {
         R.id.frame_control_area,
         R.id.button_paint,
         R.id.button_player,
+        R.id.button_lock,
     };
 
     private final int[][] visibilityTable = {
@@ -97,6 +99,7 @@ public class ViewController {
         {0x08, 0x00, 0x04, 0x00, 0x00, 0x00},   /* frame_control_area */
         {0x08, 0x00, 0x04, 0x00, 0x00, 0x00},   /* button_paint */
         {0x08, 0x00, 0x04, 0x00, 0x00, 0x00},   /* button_player */
+        {0x08, 0x00, 0x04, 0x00, 0x00, 0x00},   /* button_lock */
     };
 
     private final AnimationDirection[] animationDirections = {
@@ -121,6 +124,7 @@ public class ViewController {
         AnimationDirection.Down,    /* frame_control_area */
         AnimationDirection.Up,      /* button_paint */
         AnimationDirection.Up,      /* button_player */
+        AnimationDirection.Up,      /* button_lock */
     };
 
     private boolean isFullScreenPreview;
@@ -339,6 +343,23 @@ public class ViewController {
     }
 
     /**
+     * changeViewLock
+     */
+    public void changeViewLock() {
+        DebugLog.d(TAG, "changeViewLock");
+
+        ImageView lockButton = (ImageView) this.views.get(R.id.button_lock);
+        VideoSurfaceView surfaceView = (VideoSurfaceView) this.views.get(R.id.video_surface_view);
+
+        boolean lock = surfaceView.changeLock();
+        if (lock) {
+            lockButton.setImageResource(R.drawable.lock);
+        } else {
+            lockButton.setImageResource(R.drawable.unlock);
+        }
+    }
+
+    /**
      * updateSpeedUpDownViews
      */
     public void updateSpeedUpDownViews() {
@@ -413,16 +434,16 @@ public class ViewController {
 
         if (this.isFullScreenPreview) {
             // animation (frame in)
-            fromY1 = -300.0f;
+            fromY1 = -1.0f * ANIMATION_DISTANCE;
             toY1 = 0.0f;
-            fromY2 = 300.0f;
+            fromY2 = ANIMATION_DISTANCE;
             toY2 = 0.0f;
         } else {
             // animation (frame out)
             fromY1 = 0.0f;
-            toY1 = -300.0f;
+            toY1 = -1.0f * ANIMATION_DISTANCE;
             fromY2 = 0.0f;
-            toY2 = 300.0f;
+            toY2 = ANIMATION_DISTANCE;
         }
         this.isFullScreenPreview = !this.isFullScreenPreview;
 

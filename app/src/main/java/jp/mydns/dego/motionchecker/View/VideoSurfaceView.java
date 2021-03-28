@@ -41,9 +41,13 @@ public class VideoSurfaceView extends SurfaceView implements SurfaceHolder.Callb
             this.offsetY = 0;
         }
 
-        private void touchStart(int x, int y, long nanoTime) {
-            this.timeTouchDown = (int) (nanoTime / 1000 / 1000);
+        private void touchStart(int x, int y) {
             this.startPoint = new Point(x, y);
+        }
+
+        private void touchStart(long nanoTime) {
+            this.timeTouchDown = (int) (nanoTime / 1000 / 1000);
+            this.startPoint = null;
         }
 
         private int diffTime(long nanoTime) {
@@ -64,9 +68,9 @@ public class VideoSurfaceView extends SurfaceView implements SurfaceHolder.Callb
     // constant values
     // ---------------------------------------------------------------------------------------------
     private static final String TAG = "VideoSurfaceView";
-    private static final int CLICK_TIME = 300;
+    private static final int CLICK_TIME = 150;
     private static final float SCALE_MAX = 4.0f;
-    private static final float SCALE_MIN = 0.5f;
+    private static final float SCALE_MIN = 1.0f;
 
     private enum ACTION_MODE {
         NONE,
@@ -81,6 +85,7 @@ public class VideoSurfaceView extends SurfaceView implements SurfaceHolder.Callb
     private float scale;
     private LayoutInfo layoutInfo;
     private ACTION_MODE mode;
+    private boolean isViewLock;
 
     // ---------------------------------------------------------------------------------------------
     // constructor
@@ -240,6 +245,16 @@ public class VideoSurfaceView extends SurfaceView implements SurfaceHolder.Callb
         }
     }
 
+    /**
+     * changeLock
+     *
+     * @return is locked
+     */
+    boolean changeLock() {
+        this.isViewLock = !this.isViewLock;
+        return this.isViewLock;
+    }
+
     // ---------------------------------------------------------------------------------------------
     // Private Method
     // ---------------------------------------------------------------------------------------------
@@ -249,6 +264,8 @@ public class VideoSurfaceView extends SurfaceView implements SurfaceHolder.Callb
      */
     private void init(Context context) {
         DebugLog.d(TAG, "init");
+
+        this.isViewLock = false;
 
         SurfaceHolder holder = this.getHolder();
         if (holder != null) {
@@ -292,6 +309,19 @@ public class VideoSurfaceView extends SurfaceView implements SurfaceHolder.Callb
     private boolean touch(MotionEvent event) {
         DebugLog.d(TAG, "touch");
 
+        // ロック時はperformClickのみ動作させる
+        if (this.isViewLock) {
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                this.layoutInfo.touchStart(System.nanoTime());
+            } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                int diffTime = this.layoutInfo.diffTime(System.nanoTime());
+                if (diffTime < CLICK_TIME) {
+                    this.performClick();
+                }
+            }
+            return true;
+        }
+
         if (event.getPointerCount() == 1) {
             DebugLog.v(TAG, "PointerCount 1");
             this.move(event);
@@ -317,10 +347,18 @@ public class VideoSurfaceView extends SurfaceView implements SurfaceHolder.Callb
 
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             DebugLog.v(TAG, "ACTION_DOWN");
-            this.layoutInfo.touchStart(x, y, System.nanoTime());
+            this.layoutInfo.touchStart(System.nanoTime());
             this.mode = ACTION_MODE.MOVE;
         } else if (this.mode == ACTION_MODE.MOVE && event.getAction() == MotionEvent.ACTION_MOVE) {
             DebugLog.v(TAG, "ACTION_MOVE");
+            int diffTime = this.layoutInfo.diffTime(System.nanoTime());
+            if (diffTime < CLICK_TIME) {
+                return;
+            }
+            if (this.layoutInfo.startPoint == null) {
+                this.layoutInfo.touchStart(x, y);
+                return;
+            }
             this.layoutInfo.setOffset(x, y);
             int dx = x - this.layoutInfo.startPoint.x;
             int dy = y - this.layoutInfo.startPoint.y;

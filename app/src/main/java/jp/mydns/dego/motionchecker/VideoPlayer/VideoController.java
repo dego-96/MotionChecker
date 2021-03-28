@@ -386,6 +386,14 @@ public class VideoController {
         this.viewController.animFullscreenPreview();
     }
 
+    /**
+     * viewLock
+     */
+    public void viewLock() {
+        DebugLog.d(TAG, "viewLock");
+        this.viewController.changeViewLock();
+    }
+
     // ---------------------------------------------------------------------------------------------
     // private method
     // ---------------------------------------------------------------------------------------------

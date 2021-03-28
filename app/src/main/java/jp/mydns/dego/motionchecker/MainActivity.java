@@ -185,6 +185,8 @@ public class MainActivity extends AppCompatActivity {
             this.getVideoController().setLayout(this, R.id.layout_video_paint);
         } else if (id == R.id.button_player) {
             this.getVideoController().setLayout(this, R.id.layout_video_controller);
+        } else if (id == R.id.button_lock) {
+            this.getVideoController().viewLock();
         }
     }
 
