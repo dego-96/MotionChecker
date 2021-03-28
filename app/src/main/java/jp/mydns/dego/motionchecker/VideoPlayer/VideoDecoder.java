@@ -204,6 +204,14 @@ public class VideoDecoder implements Runnable {
     void seekTo(int progress) {
         DebugLog.d(TAG, "seekTo(" + progress + ")");
 
+        if (progress == 0) {
+            this.position = FramePosition.FIRST;
+        } else if (progress == this.duration) {
+            this.position = FramePosition.LAST;
+        } else {
+            this.position = FramePosition.MID;
+        }
+
         this.setStatus(DecoderStatus.SEEKING, true);
         this.decoder.flush();
         this.extractor.seekTo(progress * 1000, MediaExtractor.SEEK_TO_CLOSEST_SYNC);

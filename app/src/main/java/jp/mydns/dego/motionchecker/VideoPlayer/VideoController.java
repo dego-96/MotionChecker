@@ -2,7 +2,6 @@ package jp.mydns.dego.motionchecker.VideoPlayer;
 
 import android.app.Activity;
 import android.net.Uri;
-import android.view.Display;
 import android.view.Surface;
 
 import jp.mydns.dego.motionchecker.Util.DebugLog;
@@ -62,12 +61,31 @@ public class VideoController {
     // public method
     // ---------------------------------------------------------------------------------------------
 
+    /**
+     * setViews
+     *
+     * @param activity activity
+     */
     public void setViews(Activity activity) {
+        DebugLog.d(TAG, "setViews");
+
         this.viewController.setViews(activity);
+        this.viewController.bindDisplay(activity.getWindowManager().getDefaultDisplay());
+        if (!this.isVideoStandby()) {
+            this.setVisibilities(VideoDecoder.DecoderStatus.INIT);
+        }
     }
 
-    public void bindDisplay(Display display) {
-        this.viewController.bindDisplay(display);
+    /**
+     * setLayout
+     *
+     * @param activity activity
+     * @param id       base view group id
+     */
+    public void setLayout(Activity activity, int id) {
+        DebugLog.d(TAG, "setLayout");
+
+        this.viewController.setLayout(activity, id);
     }
 
     /**

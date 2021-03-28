@@ -15,7 +15,6 @@ import android.widget.Toast;
 import jp.mydns.dego.motionchecker.Util.DebugLog;
 import jp.mydns.dego.motionchecker.Util.PermissionManager;
 import jp.mydns.dego.motionchecker.VideoPlayer.VideoController;
-import jp.mydns.dego.motionchecker.VideoPlayer.VideoDecoder;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -44,13 +43,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         DebugLog.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        this.setContentView(R.layout.activity_main);
 
+        this.getVideoController().setLayout(this, R.id.layout_video_controller);
         this.getVideoController().setViews(this);
-        this.getVideoController().bindDisplay(this.getWindowManager().getDefaultDisplay());
-        if (!this.getVideoController().isVideoStandby()) {
-            this.getVideoController().setVisibilities(VideoDecoder.DecoderStatus.INIT);
-        }
     }
 
     /**
@@ -185,8 +181,10 @@ public class MainActivity extends AppCompatActivity {
             this.getVideoController().moveAfter();
         } else if (id == R.id.button_move_before) {
             this.getVideoController().moveBefore();
-//        } else if (id == R.id.button_rotate) {
-//            this.getVideoController().rotate();
+        } else if (id == R.id.button_paint) {
+            this.getVideoController().setLayout(this, R.id.layout_video_paint);
+        } else if (id == R.id.button_player) {
+            this.getVideoController().setLayout(this, R.id.layout_video_controller);
         }
     }
 

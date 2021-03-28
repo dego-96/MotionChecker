@@ -47,6 +47,10 @@ public class ViewController {
     private static final SimpleDateFormat TimerFormat = new SimpleDateFormat("mm:ss:SSS", Locale.JAPAN);
     private Display display;
     private SparseArray<View> views;
+    private final int[] layoutIdList = {
+        R.id.layout_video_controller,
+        R.id.layout_video_paint,
+    };
     private final int[] viewIdList = {
         R.id.video_surface_view,
         R.id.image_no_video,
@@ -66,8 +70,10 @@ public class ViewController {
         R.id.text_view_remain_time,
         R.id.text_view_speed,
         R.id.frame_control_area,
-        R.id.button_rotate
+        R.id.button_paint,
+        R.id.button_player,
     };
+
     private final int[][] visibilityTable = {
         /* 0x00:VISIBLE,  0x04:INVISIBLE,  0x08:GONE */
         /*INIT PAUSE PLAY  SEEK  NEXT  PREV */
@@ -89,9 +95,11 @@ public class ViewController {
         {0x08, 0x00, 0x00, 0x00, 0x00, 0x00},   /* text_view_remain_time */
         {0x08, 0x00, 0x00, 0x00, 0x00, 0x00},   /* text_view_speed */
         {0x08, 0x00, 0x04, 0x00, 0x00, 0x00},   /* frame_control_area */
-        {0x08, 0x04, 0x04, 0x04, 0x04, 0x04},   /* button_rotate */
+        {0x08, 0x00, 0x04, 0x00, 0x00, 0x00},   /* button_paint */
+        {0x08, 0x00, 0x04, 0x00, 0x00, 0x00},   /* button_player */
     };
-    private final AnimationDirection[] animSide = {
+
+    private final AnimationDirection[] animationDirections = {
         /* 0:no animation,  1:left,  2:up,  3:right,  4:down */
         AnimationDirection.None,    /* video_surface_view */
         AnimationDirection.None,    /* image_no_video */
@@ -111,8 +119,10 @@ public class ViewController {
         AnimationDirection.Down,    /* text_view_remain_time */
         AnimationDirection.Down,    /* text_view_speed */
         AnimationDirection.Down,    /* frame_control_area */
-        AnimationDirection.Up,      /* button_rotate */
+        AnimationDirection.Up,      /* button_paint */
+        AnimationDirection.Up,      /* button_player */
     };
+
     private boolean isFullScreenPreview;
 
     // ---------------------------------------------------------------------------------------------
@@ -135,6 +145,26 @@ public class ViewController {
     // ---------------------------------------------------------------------------------------------
 
     /**
+     * setLayout
+     *
+     * @param activity activity
+     * @param id       base view group id
+     */
+    public void setLayout(Activity activity, int id) {
+        DebugLog.d(TAG, "setLayout");
+
+        for (int layoutId : this.layoutIdList) {
+            if (id == layoutId) {
+                DebugLog.v(TAG, layoutId + " is VISIBLE");
+                activity.findViewById(layoutId).setVisibility(View.VISIBLE);
+            } else {
+                DebugLog.v(TAG, layoutId + " is INVISIBLE");
+                activity.findViewById(layoutId).setVisibility(View.INVISIBLE);
+            }
+        }
+    }
+
+    /**
      * setViews
      *
      * @param activity activity
@@ -146,6 +176,7 @@ public class ViewController {
         // ここで更新しないとSurfaceViewのcreateSurfaceが呼び出されない
         this.views = new SparseArray<>();
         for (int id : this.viewIdList) {
+            DebugLog.v(TAG, "view id : " + id);
             View view = activity.findViewById(id);
             if (view != null) {
                 this.views.put(id, view);
@@ -177,14 +208,14 @@ public class ViewController {
     public void setVisibilities(VideoDecoder.DecoderStatus status) {
         DebugLog.d(TAG, "setVisibilities( " + status.name() + " )");
 
-        for (int index = 0; index < this.visibilityTable.length; index++) {
-            int visibility = this.visibilityTable[index][status.ordinal()];
+        for (int index = 0; index < visibilityTable.length; index++) {
+            int visibility = visibilityTable[index][status.ordinal()];
             View view = this.views.get(this.viewIdList[index]);
             if (view != null) {
                 DebugLog.v(TAG, "visibility : " + visibility);
                 view.setVisibility(visibility);
             } else {
-                DebugLog.e(TAG, "getView is null. (" + this.viewIdList[index] + ")");
+                DebugLog.w(TAG, "getView is null. (" + this.viewIdList[index] + ")");
                 return;
             }
         }
@@ -397,7 +428,7 @@ public class ViewController {
 
         for (int index = 0; index < this.viewIdList.length; index++) {
             View view = this.views.get(this.viewIdList[index]);
-            AnimationDirection direction = this.animSide[index];
+            AnimationDirection direction = animationDirections[index];
             if (direction == AnimationDirection.Up) {
                 animatorList.add(
                     ObjectAnimator.ofFloat(view, "translationY", fromY1, toY1)
