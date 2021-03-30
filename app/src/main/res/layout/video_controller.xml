@@ -37,8 +37,8 @@
             <!-- Paint Button -->
             <ImageView
                 android:id="@+id/button_paint"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
                 android:layout_gravity="end"
                 android:layout_margin="10dp"
                 android:clickable="true"
@@ -51,15 +51,15 @@
             <!-- Paint Button -->
             <ImageView
                 android:id="@+id/button_lock"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
                 android:layout_gravity="end"
                 android:layout_margin="10dp"
                 android:clickable="true"
                 android:contentDescription="@string/content_description_view_lock"
                 android:focusable="true"
                 android:onClick="onButtonClicked"
-                android:src="@drawable/unlock"
+                android:src="@drawable/video_unlock"
                 android:visibility="invisible" />
 
         </LinearLayout>
@@ -89,8 +89,8 @@
                 <!-- Move Before -->
                 <ImageView
                     android:id="@+id/button_move_before"
-                    android:layout_width="60dp"
-                    android:layout_height="40dp"
+                    android:layout_width="40dp"
+                    android:layout_height="30dp"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginStart="5dp"
                     android:clickable="false"
@@ -127,8 +127,8 @@
                 <!-- Move After -->
                 <ImageView
                     android:id="@+id/button_move_after"
-                    android:layout_width="60dp"
-                    android:layout_height="40dp"
+                    android:layout_width="40dp"
+                    android:layout_height="30dp"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginEnd="5dp"
                     android:clickable="false"
@@ -163,10 +163,10 @@
             <!-- Previous Frame Button -->
             <ImageView
                 android:id="@+id/button_previous_frame"
-                android:layout_width="30dp"
-                android:layout_height="50dp"
+                android:layout_width="25dp"
+                android:layout_height="40dp"
                 android:layout_gravity="start"
-                android:layout_marginVertical="10dp"
+                android:layout_marginVertical="5dp"
                 android:layout_marginStart="10dp"
                 android:clickable="false"
                 android:contentDescription="@string/content_description_previous_frame"
@@ -179,7 +179,7 @@
             <jp.mydns.dego.motionchecker.View.FrameControlAreaView
                 android:id="@+id/frame_control_area"
                 android:layout_width="0dp"
-                android:layout_height="50dp"
+                android:layout_height="40dp"
                 android:layout_marginHorizontal="10dp"
                 android:layout_weight="1"
                 android:contentDescription="@string/content_description_frame_control_area"
@@ -190,8 +190,8 @@
             <!-- Next Frame -->
             <ImageView
                 android:id="@+id/button_next_frame"
-                android:layout_width="30dp"
-                android:layout_height="50dp"
+                android:layout_width="25dp"
+                android:layout_height="40dp"
                 android:layout_gravity="end"
                 android:layout_marginVertical="5dp"
                 android:layout_marginEnd="10dp"
@@ -219,7 +219,7 @@
                 android:layout_marginBottom="5dp"
                 android:text="@string/current_time_init"
                 android:textColor="@android:color/white"
-                android:textSize="15sp"
+                android:textSize="12sp"
                 android:visibility="invisible" />
 
             <Space
@@ -234,7 +234,7 @@
                 android:layout_gravity="center_horizontal"
                 android:layout_marginBottom="5dp"
                 android:textColor="@android:color/white"
-                android:textSize="15sp"
+                android:textSize="12sp"
                 android:visibility="invisible" />
 
             <Space
@@ -251,7 +251,7 @@
                 android:layout_marginBottom="5dp"
                 android:text="@string/remain_time_init"
                 android:textColor="@android:color/white"
-                android:textSize="15sp"
+                android:textSize="12sp"
                 android:visibility="invisible" />
 
         </LinearLayout>
@@ -259,8 +259,10 @@
         <jp.mydns.dego.motionchecker.View.VideoProgressBar
             android:id="@+id/seek_bar_playtime"
             android:layout_width="match_parent"
-            android:layout_height="20dp"
-            android:layout_margin="5dp"
+            android:layout_height="15dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginEnd="10dp"
             android:visibility="invisible" />
 
         <LinearLayout
@@ -268,6 +270,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="10dp"
             android:orientation="horizontal">
 
             <Space
@@ -278,9 +281,9 @@
             <!-- Speed Down -->
             <ImageView
                 android:id="@+id/button_speed_down"
-                android:layout_width="70dp"
-                android:layout_height="40dp"
-                android:layout_margin="10dp"
+                android:layout_width="60dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
                 android:clickable="false"
                 android:contentDescription="@string/content_description_speed_down"
                 android:focusable="true"
@@ -296,9 +299,9 @@
             <!-- Stop -->
             <ImageView
                 android:id="@+id/button_stop"
-                android:layout_width="70dp"
-                android:layout_height="40dp"
-                android:layout_margin="10dp"
+                android:layout_width="60dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
                 android:clickable="false"
                 android:contentDescription="@string/content_description_stop"
                 android:focusable="true"
@@ -314,9 +317,9 @@
             <!-- Play/Pause -->
             <ImageView
                 android:id="@+id/button_play"
-                android:layout_width="70dp"
-                android:layout_height="40dp"
-                android:layout_margin="10dp"
+                android:layout_width="60dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
                 android:clickable="false"
                 android:contentDescription="@string/content_description_play"
                 android:focusable="true"
@@ -332,9 +335,9 @@
             <!-- Speed Up -->
             <ImageView
                 android:id="@+id/button_speed_up"
-                android:layout_width="70dp"
-                android:layout_height="40dp"
-                android:layout_margin="10dp"
+                android:layout_width="60dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
                 android:clickable="false"
                 android:contentDescription="@string/content_description_speed_up"
                 android:focusable="true"

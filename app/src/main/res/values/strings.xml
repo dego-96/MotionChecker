@@ -29,6 +29,21 @@
     <string name="label_move_after">10秒進む</string>
     <string name="label_move_before">10秒戻る</string>
 
+    <string name="content_description_paint_undo">戻る</string>
+    <string name="content_description_paint_redo">進む</string>
+    <string name="content_description_paint_grid">枠線</string>
+    <string name="content_description_paint_line">直線</string>
+    <string name="content_description_paint_rect">矩形</string>
+    <string name="content_description_paint_round">円</string>
+    <string name="content_description_paint_path">フリーハンド</string>
+    <string name="content_description_paint_erase">クリア</string>
+    <string name="content_description_color_white">白</string>
+    <string name="content_description_color_red">赤</string>
+    <string name="content_description_color_green">緑</string>
+    <string name="content_description_color_blue">青</string>
+    <string name="content_description_color_yellow">黄色</string>
+    <string name="content_description_color_black">黒</string>
+
     <!-- Toast -->
     <string name="toast_no_permission">動画を選択できません。\n外部ストレージへのアクセス権を許可して下さい。</string>
     <string name="toast_no_video">動画を取得できませんでした。</string>

@@ -163,7 +163,7 @@ public class ViewController {
                 activity.findViewById(layoutId).setVisibility(View.VISIBLE);
             } else {
                 DebugLog.v(TAG, layoutId + " is INVISIBLE");
-                activity.findViewById(layoutId).setVisibility(View.INVISIBLE);
+                activity.findViewById(layoutId).setVisibility(View.GONE);
             }
         }
     }
@@ -353,9 +353,9 @@ public class ViewController {
 
         boolean lock = surfaceView.changeLock();
         if (lock) {
-            lockButton.setImageResource(R.drawable.lock);
+            lockButton.setImageResource(R.drawable.video_view_lock);
         } else {
-            lockButton.setImageResource(R.drawable.unlock);
+            lockButton.setImageResource(R.drawable.video_unlock);
         }
     }
 
@@ -483,9 +483,9 @@ public class ViewController {
 
         if (playButton != null) {
             if (status == VideoDecoder.DecoderStatus.PLAYING) {
-                playButton.setImageResource(R.drawable.pause);
+                playButton.setImageResource(R.drawable.video_pause);
             } else if (status == VideoDecoder.DecoderStatus.PAUSED) {
-                playButton.setImageResource(R.drawable.play);
+                playButton.setImageResource(R.drawable.video_play);
             }
         } else {
             DebugLog.e(TAG, "get image view resource error.");
