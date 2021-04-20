@@ -15,6 +15,7 @@
     <string name="content_description_frame_control_area">Frame Control Area</string>
     <string name="content_description_rotate">Rotate Clockwise</string>
     <string name="content_description_paint">Paint Mode</string>
+    <string name="content_description_capture">Video Capture</string>
     <string name="content_description_player">Video Player Mode</string>
     <string name="content_description_view_lock">View Resize Lock/Unlock</string>
     <string name="current_time_init">00:00:000</string>
@@ -45,7 +46,8 @@
     <string name="content_description_color_black">黒</string>
 
     <!-- Toast -->
-    <string name="toast_no_permission">動画を選択できません。\n外部ストレージへのアクセス権を許可して下さい。</string>
+    <string name="toast_no_permission_ext_read">動画を選択できません。\n外部ストレージへのアクセス権を許可して下さい。</string>
     <string name="toast_no_video">動画を取得できませんでした。</string>
+    <string name="toast_no_permission_ext_write">外部ストレージへの書き込み権限を許可して下さい</string>
 
 </resources>

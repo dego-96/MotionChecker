@@ -4,9 +4,13 @@ import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.app.Activity;
+import android.graphics.Bitmap;
 import android.graphics.Point;
+import android.graphics.Rect;
+import android.os.Handler;
 import android.util.SparseArray;
 import android.view.Display;
+import android.view.PixelCopy;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -20,12 +24,13 @@ import java.util.Locale;
 
 import jp.mydns.dego.motionchecker.InstanceHolder;
 import jp.mydns.dego.motionchecker.R;
+import jp.mydns.dego.motionchecker.Util.BitmapHelper;
 import jp.mydns.dego.motionchecker.Util.DebugLog;
 import jp.mydns.dego.motionchecker.VideoPlayer.PlaySpeedManager;
 import jp.mydns.dego.motionchecker.VideoPlayer.Video;
 import jp.mydns.dego.motionchecker.VideoPlayer.VideoDecoder;
 
-public class ViewController {
+public class VideoViewController {
 
     // ---------------------------------------------------------------------------------------------
     // constant values
@@ -48,10 +53,6 @@ public class ViewController {
     private static final SimpleDateFormat TimerFormat = new SimpleDateFormat("mm:ss:SSS", Locale.JAPAN);
     private Display display;
     private SparseArray<View> views;
-    private final int[] layoutIdList = {
-        R.id.layout_video_controller,
-        R.id.layout_video_paint,
-    };
     private final int[] viewIdList = {
         R.id.video_surface_view,
         R.id.image_no_video,
@@ -129,15 +130,19 @@ public class ViewController {
 
     private boolean isFullScreenPreview;
 
+    private Bitmap videoCapture;
+
+    PixelCopy.OnPixelCopyFinishedListener pixelCopyFinishedListener;
+
     // ---------------------------------------------------------------------------------------------
     // constructor
     // ---------------------------------------------------------------------------------------------
 
     /**
-     * ViewController
+     * VideoViewController
      */
-    public ViewController() {
-        DebugLog.d(TAG, "ViewController");
+    public VideoViewController() {
+        DebugLog.d(TAG, "VideoViewController");
 
         this.display = null;
         this.views = null;
@@ -147,26 +152,6 @@ public class ViewController {
     // ---------------------------------------------------------------------------------------------
     // public method
     // ---------------------------------------------------------------------------------------------
-
-    /**
-     * setLayout
-     *
-     * @param activity activity
-     * @param id       base view group id
-     */
-    public void setLayout(Activity activity, int id) {
-        DebugLog.d(TAG, "setLayout");
-
-        for (int layoutId : this.layoutIdList) {
-            if (id == layoutId) {
-                DebugLog.v(TAG, layoutId + " is VISIBLE");
-                activity.findViewById(layoutId).setVisibility(View.VISIBLE);
-            } else {
-                DebugLog.v(TAG, layoutId + " is INVISIBLE");
-                activity.findViewById(layoutId).setVisibility(View.GONE);
-            }
-        }
-    }
 
     /**
      * setViews
@@ -466,6 +451,60 @@ public class ViewController {
         AnimatorSet animatorSet = new AnimatorSet();
         animatorSet.playTogether(animatorList);
         animatorSet.start();
+    }
+
+    /**
+     * capture
+     */
+    public void capture() {
+        DebugLog.d(TAG, "capture");
+        VideoSurfaceView videoSurfaceView = (VideoSurfaceView) this.views.get(R.id.video_surface_view);
+
+        int width = videoSurfaceView.getWidth();
+        int height = videoSurfaceView.getHeight();
+        this.videoCapture = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        PixelCopy.request(videoSurfaceView, this.videoCapture, this.pixelCopyFinishedListener, new Handler());
+    }
+
+    /**
+     * saveBitmap
+     *
+     * @return is success
+     */
+    public boolean saveBitmap() {
+        DebugLog.d(TAG, "saveBitmap");
+
+        if (this.videoCapture == null) {
+            return false;
+        }
+
+        BitmapHelper.BitmapType type = BitmapHelper.BitmapType.Capture;
+        return BitmapHelper.saveBitmapToCache(type, this.videoCapture);
+    }
+    /**
+     * setOnPixelCopyFinishedListener
+     *
+     * @param listener pixel copy finished listener
+     */
+    public void setOnPixelCopyFinishedListener(PixelCopy.OnPixelCopyFinishedListener listener) {
+        this.pixelCopyFinishedListener = listener;
+    }
+
+    /**
+     * getSurfaceViewSize
+     *
+     * @return video surface view size
+     */
+    public Rect getSurfaceViewSize() {
+        DebugLog.d(TAG, "getSurfaceViewSize");
+        VideoSurfaceView videoSurfaceView = (VideoSurfaceView) this.views.get(R.id.video_surface_view);
+
+        int left = videoSurfaceView.getLeft();
+        int top = videoSurfaceView.getTop();
+        int right = videoSurfaceView.getRight();
+        int bottom = videoSurfaceView.getBottom();
+        DebugLog.v(TAG, "video surface view layout : (" + left + ", " + top + ", " + right + ", " + bottom + ")");
+        return new Rect(left, top, right, bottom);
     }
 
     // ---------------------------------------------------------------------------------------------

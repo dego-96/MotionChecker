@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
 
+import jp.mydns.dego.motionchecker.Drawer.DrawingManager;
 import jp.mydns.dego.motionchecker.Util.DebugLog;
 import jp.mydns.dego.motionchecker.Util.PermissionManager;
 import jp.mydns.dego.motionchecker.VideoPlayer.VideoController;
@@ -25,6 +26,11 @@ public class MainActivity extends AppCompatActivity {
 
     public static final int REQUEST_PERMISSION_READ_EXTERNAL_STORAGE = 10;
     public static final int REQUEST_GALLERY = 20;
+
+    private enum Mode {
+        Video,
+        Paint
+    }
 
     // ---------------------------------------------------------------------------------------------
     // Private Fields
@@ -45,8 +51,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.activity_main);
 
-        this.getVideoController().setLayout(this, R.id.layout_video_controller);
+        this.setMode(Mode.Video);
         this.getVideoController().setViews(this);
+        this.getDrawingManager().setViews(this);
     }
 
     /**
@@ -141,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
             ) {
                 Toast.makeText(
                     this,
-                    this.getString(R.string.toast_no_permission),
+                    this.getString(R.string.toast_no_permission_ext_read),
                     Toast.LENGTH_LONG
                 ).show();
             } else {
@@ -182,11 +189,39 @@ public class MainActivity extends AppCompatActivity {
         } else if (id == R.id.button_move_before) {
             this.getVideoController().moveBefore();
         } else if (id == R.id.button_paint) {
-            this.getVideoController().setLayout(this, R.id.layout_video_paint);
+            this.setMode(Mode.Paint);
         } else if (id == R.id.button_player) {
-            this.getVideoController().setLayout(this, R.id.layout_video_controller);
+            this.setMode(Mode.Video);
         } else if (id == R.id.button_lock) {
             this.getVideoController().viewLock();
+//        } else if (id == R.id.button_paint_undo) {
+//            // TODO:
+//        } else if (id == R.id.button_paint_redo) {
+//            // TODO:
+//        } else if (id == R.id.button_paint_grid) {
+//            this.getDrawingManager().changeGrid();
+//        } else if (id == R.id.button_paint_line) {
+//            // TODO:
+//        } else if (id == R.id.button_paint_rect) {
+//            // TODO:
+//        } else if (id == R.id.button_paint_round) {
+//            // TODO:
+//        } else if (id == R.id.button_paint_path) {
+//            // TODO:
+//        } else if (id == R.id.button_paint_erase) {
+//            // TODO:
+        } else if (id == R.id.button_color_white) {
+            this.getDrawingManager().setColor(DrawingManager.ColorType.White);
+        } else if (id == R.id.button_color_red) {
+            this.getDrawingManager().setColor(DrawingManager.ColorType.Red);
+        } else if (id == R.id.button_color_green) {
+            this.getDrawingManager().setColor(DrawingManager.ColorType.Green);
+        } else if (id == R.id.button_color_blue) {
+            this.getDrawingManager().setColor(DrawingManager.ColorType.Blue);
+        } else if (id == R.id.button_color_yellow) {
+            this.getDrawingManager().setColor(DrawingManager.ColorType.Yellow);
+        } else if (id == R.id.button_color_black) {
+            this.getDrawingManager().setColor(DrawingManager.ColorType.Black);
         }
     }
 
@@ -201,6 +236,15 @@ public class MainActivity extends AppCompatActivity {
      */
     private VideoController getVideoController() {
         return InstanceHolder.getInstance().getVideoController();
+    }
+
+    /**
+     * getDrawingManager
+     *
+     * @return drawing manager
+     */
+    private DrawingManager getDrawingManager() {
+        return InstanceHolder.getInstance().getDrawingManager();
     }
 
     /**
@@ -263,9 +307,24 @@ public class MainActivity extends AppCompatActivity {
                 this,
                 Manifest.permission.READ_EXTERNAL_STORAGE,
                 REQUEST_PERMISSION_READ_EXTERNAL_STORAGE)) {
-                Toast.makeText(this, getString(R.string.toast_no_permission), Toast.LENGTH_LONG).show();
+                Toast.makeText(this, this.getString(R.string.toast_no_permission_ext_read), Toast.LENGTH_LONG).show();
             }
         }
     }
 
+    /**
+     * setMode
+     *
+     * @param mode mode
+     */
+    private void setMode(Mode mode) {
+        DebugLog.d(TAG, "setMode");
+
+        if (mode == Mode.Video) {
+            this.findViewById(R.id.layout_video_controller).setVisibility(View.VISIBLE);
+            this.findViewById(R.id.layout_video_paint).setVisibility(View.GONE);
+        } else if (mode == Mode.Paint) {
+            this.getVideoController().startPixelCopy();
+        }
+    }
 }

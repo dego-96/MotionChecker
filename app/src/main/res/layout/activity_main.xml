@@ -10,13 +10,6 @@
         android:layout_height="match_parent"
         android:background="@android:color/background_dark">
 
-        <jp.mydns.dego.motionchecker.View.VideoSurfaceView
-            android:id="@+id/video_surface_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="center"
-            android:visibility="gone" />
-
         <!-- Background (no video icon) -->
         <ImageView
             android:id="@+id/image_no_video"

@@ -209,6 +209,10 @@ public class VideoSurfaceView extends SurfaceView implements SurfaceHolder.Callb
         DebugLog.d(TAG, "surfaceDestroyed");
     }
 
+    // ---------------------------------------------------------------------------------------------
+    // package private method
+    // ---------------------------------------------------------------------------------------------
+
     /**
      * setSize
      *

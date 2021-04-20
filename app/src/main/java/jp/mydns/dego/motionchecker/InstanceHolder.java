@@ -2,6 +2,7 @@ package jp.mydns.dego.motionchecker;
 
 import android.app.Application;
 
+import jp.mydns.dego.motionchecker.Drawer.DrawingManager;
 import jp.mydns.dego.motionchecker.Util.DebugLog;
 import jp.mydns.dego.motionchecker.Util.PermissionManager;
 import jp.mydns.dego.motionchecker.VideoPlayer.VideoController;
@@ -18,6 +19,7 @@ public class InstanceHolder extends Application {
     // ---------------------------------------------------------------------------------------------
     private static InstanceHolder instance = null;
     private VideoController videoController = null;
+    private DrawingManager drawingManager = null;
     private PermissionManager permissionManager = null;
 
     // ---------------------------------------------------------------------------------------------
@@ -54,6 +56,18 @@ public class InstanceHolder extends Application {
             this.videoController = new VideoController();
         }
         return this.videoController;
+    }
+
+    /**
+     * getDrawingManager
+     *
+     * @return DrawingManager
+     */
+    public DrawingManager getDrawingManager() {
+        if (this.drawingManager == null) {
+            this.drawingManager = new DrawingManager();
+        }
+        return this.drawingManager;
     }
 
     /**

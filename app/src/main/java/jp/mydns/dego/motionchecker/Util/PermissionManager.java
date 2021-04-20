@@ -41,14 +41,16 @@ public class PermissionManager {
     public boolean getPermission(String permission) {
         DebugLog.d(TAG, "getPermission");
         Context context = InstanceHolder.getInstance().getApplicationContext();
-        int result;
         switch (permission) {
             case Manifest.permission.READ_EXTERNAL_STORAGE:
-                result = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE);
-                return (result == PackageManager.PERMISSION_GRANTED);
+                return (PackageManager.PERMISSION_GRANTED ==
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE));
+            case Manifest.permission.WRITE_EXTERNAL_STORAGE:
+                return (PackageManager.PERMISSION_GRANTED ==
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE));
             case Manifest.permission.INTERNET:
-                result = ContextCompat.checkSelfPermission(context, Manifest.permission.INTERNET);
-                return (result == PackageManager.PERMISSION_GRANTED);
+                return (PackageManager.PERMISSION_GRANTED ==
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.INTERNET));
             default:
                 return false;
         }

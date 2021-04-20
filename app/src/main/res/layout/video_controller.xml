@@ -5,6 +5,13 @@
     android:layout_height="match_parent"
     android:background="#00000000">
 
+    <jp.mydns.dego.motionchecker.View.VideoSurfaceView
+        android:id="@+id/video_surface_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
     <LinearLayout
         android:id="@+id/layout_option_buttons"
         android:layout_width="match_parent"

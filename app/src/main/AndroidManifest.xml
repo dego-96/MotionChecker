@@ -9,6 +9,7 @@
         android:allowBackup="false"
         android:icon="@mipmap/motion_checker"
         android:label="@string/app_name"
+        android:requestLegacyExternalStorage="true"
         android:roundIcon="@mipmap/motion_checker_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
