@@ -84,7 +84,7 @@
         android:focusable="true"
         android:onClick="onButtonClicked"
         android:src="@drawable/button_paint_erase"
-        android:visibility="gone" />
+        android:visibility="visible" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -215,7 +215,7 @@
                 android:focusable="true"
                 android:onClick="onButtonClicked"
                 android:src="@drawable/button_paint_line"
-                android:visibility="gone" />
+                android:visibility="visible" />
 
             <Space
                 android:layout_width="0dp"

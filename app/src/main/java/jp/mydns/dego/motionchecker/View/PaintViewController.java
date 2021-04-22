@@ -98,6 +98,19 @@ public class PaintViewController {
         } else {
             DebugLog.e(TAG, "bitmap is null");
         }
-
     }
+
+    /**
+     * clear
+     */
+    public void clear() {
+        DebugLog.d(TAG, "clear");
+        DrawSurfaceView drawSurfaceView = (DrawSurfaceView) this.views.get(R.id.draw_surface_view);
+        drawSurfaceView.clear();
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // private method
+    // ---------------------------------------------------------------------------------------------
+
 }

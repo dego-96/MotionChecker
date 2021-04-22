@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
 
+import jp.mydns.dego.motionchecker.Drawer.DrawItemBase;
 import jp.mydns.dego.motionchecker.Drawer.DrawingManager;
 import jp.mydns.dego.motionchecker.Util.DebugLog;
 import jp.mydns.dego.motionchecker.Util.PermissionManager;
@@ -200,28 +201,28 @@ public class MainActivity extends AppCompatActivity {
 //            // TODO:
 //        } else if (id == R.id.button_paint_grid) {
 //            this.getDrawingManager().changeGrid();
-//        } else if (id == R.id.button_paint_line) {
-//            // TODO:
-//        } else if (id == R.id.button_paint_rect) {
-//            // TODO:
-//        } else if (id == R.id.button_paint_round) {
-//            // TODO:
-//        } else if (id == R.id.button_paint_path) {
-//            // TODO:
-//        } else if (id == R.id.button_paint_erase) {
-//            // TODO:
+        } else if (id == R.id.button_paint_line) {
+            this.getDrawingManager().setDrawType(DrawItemBase.DrawType.Line);
+        } else if (id == R.id.button_paint_rect) {
+            this.getDrawingManager().setDrawType(DrawItemBase.DrawType.Rect);
+        } else if (id == R.id.button_paint_round) {
+            this.getDrawingManager().setDrawType(DrawItemBase.DrawType.Round);
+        } else if (id == R.id.button_paint_path) {
+            this.getDrawingManager().setDrawType(DrawItemBase.DrawType.Path);
+        } else if (id == R.id.button_paint_erase) {
+            this.getDrawingManager().clear();
         } else if (id == R.id.button_color_white) {
-            this.getDrawingManager().setColor(DrawingManager.ColorType.White);
+            this.getDrawingManager().setColor(DrawItemBase.ColorType.White);
         } else if (id == R.id.button_color_red) {
-            this.getDrawingManager().setColor(DrawingManager.ColorType.Red);
+            this.getDrawingManager().setColor(DrawItemBase.ColorType.Red);
         } else if (id == R.id.button_color_green) {
-            this.getDrawingManager().setColor(DrawingManager.ColorType.Green);
+            this.getDrawingManager().setColor(DrawItemBase.ColorType.Green);
         } else if (id == R.id.button_color_blue) {
-            this.getDrawingManager().setColor(DrawingManager.ColorType.Blue);
+            this.getDrawingManager().setColor(DrawItemBase.ColorType.Blue);
         } else if (id == R.id.button_color_yellow) {
-            this.getDrawingManager().setColor(DrawingManager.ColorType.Yellow);
+            this.getDrawingManager().setColor(DrawItemBase.ColorType.Yellow);
         } else if (id == R.id.button_color_black) {
-            this.getDrawingManager().setColor(DrawingManager.ColorType.Black);
+            this.getDrawingManager().setColor(DrawItemBase.ColorType.Black);
         }
     }
 

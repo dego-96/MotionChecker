@@ -35,7 +35,7 @@ public class VideoViewController {
     // ---------------------------------------------------------------------------------------------
     // constant values
     // ---------------------------------------------------------------------------------------------
-    private static final String TAG = "ViewController";
+    private static final String TAG = "VideoViewController";
     private static final int ANIMATOR_DURATION = 300;
     private static final float ANIMATION_DISTANCE = 1000.0f;
 
