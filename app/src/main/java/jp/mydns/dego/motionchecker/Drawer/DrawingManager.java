@@ -2,7 +2,6 @@ package jp.mydns.dego.motionchecker.Drawer;
 
 import android.app.Activity;
 import android.graphics.Color;
-import android.graphics.Rect;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,14 +63,13 @@ public class DrawingManager {
     }
 
     /**
-     * viewSetup
+     * changeDrawable
      *
-     * @param surfaceViewSize video surface view size
+     * @param drawable is drawable
      */
-    public void viewSetup(Rect surfaceViewSize) {
-        DebugLog.d(TAG, "viewSetup");
-
-        this.viewController.setCaptureImage(surfaceViewSize);
+    public void changeDrawable(boolean drawable) {
+        DebugLog.d(TAG, "changeDrawable");
+        this.viewController.changeDrawable(drawable);
     }
 
     /**

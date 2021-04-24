@@ -6,23 +6,6 @@
     android:layout_height="match_parent"
     android:visibility="gone">
 
-    <jp.mydns.dego.motionchecker.View.CaptureImageView
-        android:id="@+id/video_capture_image"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:clickable="false"
-        android:contentDescription="@string/content_description_capture"
-        android:focusable="false"
-        android:visibility="visible" />
-
-    <jp.mydns.dego.motionchecker.View.DrawSurfaceView
-        android:id="@+id/draw_surface_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="center"
-        android:background="#00000000"
-        android:visibility="visible" />
-
     <!-- Video Player Button -->
     <ImageView
         android:id="@+id/button_player"

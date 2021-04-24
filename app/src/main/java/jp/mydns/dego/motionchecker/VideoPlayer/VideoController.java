@@ -1,16 +1,9 @@
 package jp.mydns.dego.motionchecker.VideoPlayer;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
-import android.graphics.Rect;
 import android.net.Uri;
-import android.view.PixelCopy;
 import android.view.Surface;
-import android.view.View;
-import android.view.WindowManager;
 
-import jp.mydns.dego.motionchecker.InstanceHolder;
-import jp.mydns.dego.motionchecker.R;
 import jp.mydns.dego.motionchecker.Util.DebugLog;
 import jp.mydns.dego.motionchecker.View.VideoViewController;
 
@@ -25,7 +18,6 @@ public class VideoController {
     // ---------------------------------------------------------------------------------------------
     // private fields
     // ---------------------------------------------------------------------------------------------
-    private Activity activity;
     private final VideoViewController viewController;
     private final VideoDecoder decoder;
     private final PlaySpeedManager speedManager;
@@ -33,8 +25,6 @@ public class VideoController {
 
     private Video video;
     private Surface surface;
-
-    private ProgressDialog progressDialog;
 
     // ---------------------------------------------------------------------------------------------
     // constructor
@@ -65,16 +55,6 @@ public class VideoController {
                 viewController.setVisibilities(status);
             }
         });
-
-        this.viewController.setOnPixelCopyFinishedListener(new PixelCopy.OnPixelCopyFinishedListener() {
-            @Override
-            public void onPixelCopyFinished(int copyResult) {
-                DebugLog.d(TAG, "onPixelCopyFinished");
-                if (copyResult == PixelCopy.SUCCESS) {
-                    pixelCopyFinished();
-                }
-            }
-        });
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -88,8 +68,6 @@ public class VideoController {
      */
     public void setViews(Activity activity) {
         DebugLog.d(TAG, "setViews");
-
-        this.activity = activity;
 
         this.viewController.setViews(activity);
         this.viewController.bindDisplay(activity.getWindowManager().getDefaultDisplay());
@@ -404,26 +382,6 @@ public class VideoController {
         this.viewController.changeViewLock();
     }
 
-    /**
-     * startPixelCopy
-     */
-    public void startPixelCopy() {
-        DebugLog.d(TAG, "startPixelCopy");
-
-        this.progressStart();
-
-        this.viewController.capture();
-    }
-
-    /**
-     * getSurfaceViewSize
-     *
-     * @return video surface view size
-     */
-    public Rect getSurfaceViewSize() {
-        return this.viewController.getSurfaceViewSize();
-    }
-
     // ---------------------------------------------------------------------------------------------
     // private method
     // ---------------------------------------------------------------------------------------------
@@ -471,49 +429,4 @@ public class VideoController {
         this.videoThread.start();
     }
 
-    /**
-     * progressStart
-     */
-    private void progressStart() {
-        DebugLog.d(TAG, "progressStart");
-
-        this.progressDialog = new ProgressDialog(this.activity);
-        this.progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        this.progressDialog.setMessage("しばらくお待ち下さい");
-        this.progressDialog.setCancelable(false);
-
-        // ナビゲーションバーを表示させないためにフラグを設定
-        this.progressDialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
-
-        this.progressDialog.show();
-    }
-
-    /**
-     * progressStop
-     */
-    private void progressStop() {
-        DebugLog.d(TAG, "progressStop");
-
-        if (this.progressDialog != null && this.progressDialog.isShowing()) {
-            this.progressDialog.dismiss();
-        }
-    }
-
-    /**
-     * pixelCopyFinished
-     */
-    private void pixelCopyFinished() {
-        DebugLog.d(TAG, "pixelCopyFinished");
-
-        if (this.viewController.saveBitmap()) {
-            this.activity.findViewById(R.id.layout_video_paint).setVisibility(View.VISIBLE);
-            Rect rect = this.getSurfaceViewSize();
-            InstanceHolder.getInstance().getDrawingManager().viewSetup(rect);
-            this.activity.findViewById(R.id.layout_video_controller).setVisibility(View.GONE);
-        } else {
-            DebugLog.e(TAG, "save bitmap error.");
-        }
-
-        this.progressStop();
-    }
 }

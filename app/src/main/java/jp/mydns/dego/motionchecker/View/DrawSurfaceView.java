@@ -32,6 +32,7 @@ public class DrawSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     // ---------------------------------------------------------------------------------------------
     private Paint paint;
     private DrawItemBase currentItem;
+    private boolean isDrawable;
     private long touchDownTime;
 
     // ---------------------------------------------------------------------------------------------
@@ -113,6 +114,10 @@ public class DrawSurfaceView extends SurfaceView implements SurfaceHolder.Callba
             this.performClick();
         }
 
+        if (!this.isDrawable) {
+            return false;
+        }
+
         DrawItemBase.DrawType drawType = this.getDrawType();
 
         if (drawType == DrawItemBase.DrawType.Path) {
@@ -163,6 +168,15 @@ public class DrawSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     }
 
     /**
+     * changeDrawable
+     *
+     * @param drawable is drawable
+     */
+    public void changeDrawable(boolean drawable) {
+        this.isDrawable = drawable;
+    }
+
+    /**
      * clear
      */
     public void clear() {
@@ -191,6 +205,8 @@ public class DrawSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         } else {
             DebugLog.e(TAG, "holder is null.");
         }
+
+        this.isDrawable = false;
 
         this.currentItem = null;
         this.paint = new Paint();
@@ -246,8 +262,13 @@ public class DrawSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         }
     }
 
+    /**
+     * createLine
+     *
+     * @param event motion event
+     */
     private void createLine(MotionEvent event) {
-        DebugLog.d(TAG, "createPath");
+        DebugLog.d(TAG, "createLine");
         float x = event.getX();
         float y = event.getY();
 

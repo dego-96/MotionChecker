@@ -52,9 +52,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.activity_main);
 
-        this.setMode(Mode.Video);
         this.getVideoController().setViews(this);
         this.getDrawingManager().setViews(this);
+        this.setMode(Mode.Video);
     }
 
     /**
@@ -325,7 +325,10 @@ public class MainActivity extends AppCompatActivity {
             this.findViewById(R.id.layout_video_controller).setVisibility(View.VISIBLE);
             this.findViewById(R.id.layout_video_paint).setVisibility(View.GONE);
         } else if (mode == Mode.Paint) {
-            this.getVideoController().startPixelCopy();
+            this.findViewById(R.id.layout_video_paint).setVisibility(View.VISIBLE);
+            this.findViewById(R.id.layout_video_controller).setVisibility(View.GONE);
         }
+
+        this.getDrawingManager().changeDrawable(mode == Mode.Paint);
     }
 }

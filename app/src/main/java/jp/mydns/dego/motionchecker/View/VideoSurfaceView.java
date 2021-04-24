@@ -1,7 +1,10 @@
 package jp.mydns.dego.motionchecker.View;
 
 import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Point;
+import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.Display;
@@ -125,6 +128,22 @@ public class VideoSurfaceView extends SurfaceView implements SurfaceHolder.Callb
         super(context, attributeSet, defStyleAttr);
         DebugLog.d(TAG, "VideoSurfaceView 3");
         init(context);
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // protected method
+    // ---------------------------------------------------------------------------------------------
+
+    /**
+     * onDraw
+     *
+     * @param canvas canvas
+     */
+    @Override
+    protected void onDraw(Canvas canvas) {
+        DebugLog.d(TAG, "onDraw");
+
+        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
     }
 
     // ---------------------------------------------------------------------------------------------
