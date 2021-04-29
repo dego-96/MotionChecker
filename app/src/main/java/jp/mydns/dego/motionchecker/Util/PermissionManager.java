@@ -62,20 +62,14 @@ public class PermissionManager {
      * @param activity    activity
      * @param permission  permission
      * @param requestCode request code
-     * @return is requested
      */
-    public boolean requestPermission(Activity activity, String permission, int requestCode) {
+    public void requestPermission(Activity activity, String permission, int requestCode) {
         DebugLog.d(TAG, "requestPermission");
 
-        if (ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)) {
-            ActivityCompat.requestPermissions(
-                activity,
-                new String[]{permission},
-                requestCode);
-            return true;
-        }
-        DebugLog.i(TAG, "can not show request permission dialog");
-        return false;
+        ActivityCompat.requestPermissions(
+            activity,
+            new String[]{permission},
+            requestCode);
     }
 
     // ---------------------------------------------------------------------------------------------

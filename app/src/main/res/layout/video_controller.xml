@@ -48,7 +48,7 @@
                 android:src="@drawable/button_paint"
                 android:visibility="invisible" />
 
-            <!-- Paint Button -->
+            <!-- Lock Button -->
             <ImageView
                 android:id="@+id/button_lock"
                 android:layout_width="50dp"
@@ -60,6 +60,18 @@
                 android:focusable="true"
                 android:onClick="onButtonClicked"
                 android:src="@drawable/video_unlock"
+                android:visibility="invisible" />
+
+            <ImageView
+                android:id="@+id/button_motion_image"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_margin="10dp"
+                android:clickable="true"
+                android:contentDescription="@string/content_description_motion_image"
+                android:focusable="true"
+                android:onClick="onButtonClicked"
+                android:src="@drawable/motion_checker"
                 android:visibility="invisible" />
 
         </LinearLayout>

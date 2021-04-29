@@ -1,10 +1,15 @@
 package jp.mydns.dego.motionchecker.VideoPlayer;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Handler;
+import android.view.PixelCopy;
 import android.view.Surface;
 
+import jp.mydns.dego.motionchecker.Util.BitmapHelper;
 import jp.mydns.dego.motionchecker.Util.DebugLog;
+import jp.mydns.dego.motionchecker.View.VideoSurfaceView;
 import jp.mydns.dego.motionchecker.View.VideoViewController;
 
 public class VideoController {
@@ -21,10 +26,14 @@ public class VideoController {
     private final VideoViewController viewController;
     private final VideoDecoder decoder;
     private final PlaySpeedManager speedManager;
+    //    private final ImageAnalyzer analyzer;
     private Thread videoThread;
 
     private Video video;
     private Surface surface;
+
+    private Bitmap videoCapture;
+    private final PixelCopy.OnPixelCopyFinishedListener pixelCopyFinishedListener;
 
     // ---------------------------------------------------------------------------------------------
     // constructor
@@ -38,6 +47,7 @@ public class VideoController {
         this.viewController = new VideoViewController();
         this.decoder = new VideoDecoder();
         this.speedManager = new PlaySpeedManager();
+//        this.analyzer = new ImageAnalyzer();
 
         this.decoder.setOnVideoChangeListener(new OnVideoChangeListener() {
             @Override
@@ -55,6 +65,16 @@ public class VideoController {
                 viewController.setVisibilities(status);
             }
         });
+
+        this.pixelCopyFinishedListener = new PixelCopy.OnPixelCopyFinishedListener() {
+            @Override
+            public void onPixelCopyFinished(int copyResult) {
+                DebugLog.d(TAG, "onPixelCopyFinished");
+                if (copyResult == PixelCopy.SUCCESS) {
+                    pixelCopyFinished();
+                }
+            }
+        };
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -109,6 +129,27 @@ public class VideoController {
         } else if (this.video != null && this.video.getDuration() == progress) {
             this.setViewEnable(VideoDecoder.FramePosition.LAST);
         }
+    }
+
+    /**
+     * statusChanged
+     *
+     * @param status video status
+     */
+    public void statusChanged(VideoDecoder.DecoderStatus status) {
+        DebugLog.d(TAG, "statusChanged");
+        this.setVisibilities(status);
+    }
+
+    /**
+     * progressChanged
+     *
+     * @param progress video progress
+     */
+    public void progressChanged(int progress, VideoDecoder.FramePosition position) {
+        DebugLog.d(TAG, "progressChanged");
+        this.setProgress(progress);
+        this.setViewEnable(position);
     }
 
     /**
@@ -382,6 +423,25 @@ public class VideoController {
         this.viewController.changeViewLock();
     }
 
+    /**
+     * generateMotionImage
+     */
+    public void generateMotionImage() {
+        DebugLog.d(TAG, "generateMotionImage");
+
+        VideoSurfaceView videoSurfaceView = this.viewController.getVideoSurfaceView();
+        int width = videoSurfaceView.getWidth();
+        int height = videoSurfaceView.getHeight();
+        this.videoCapture = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+
+        PixelCopy.request(
+            videoSurfaceView,
+            this.videoCapture,
+            this.pixelCopyFinishedListener,
+            new Handler()
+        );
+    }
+
     // ---------------------------------------------------------------------------------------------
     // private method
     // ---------------------------------------------------------------------------------------------
@@ -427,6 +487,17 @@ public class VideoController {
         DebugLog.d(TAG, "threadStart");
         this.videoThread = new Thread(this.decoder);
         this.videoThread.start();
+    }
+
+    /**
+     * pixelCopyFinished
+     */
+    private void pixelCopyFinished() {
+        DebugLog.d(TAG, "pixelCopyFinished");
+
+        if (this.videoCapture != null) {
+            BitmapHelper.saveBitmapToExternal(this.videoCapture);
+        }
     }
 
 }

@@ -4,13 +4,9 @@ import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.app.Activity;
-import android.graphics.Bitmap;
 import android.graphics.Point;
-import android.graphics.Rect;
-import android.os.Handler;
 import android.util.SparseArray;
 import android.view.Display;
-import android.view.PixelCopy;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -24,7 +20,6 @@ import java.util.Locale;
 
 import jp.mydns.dego.motionchecker.InstanceHolder;
 import jp.mydns.dego.motionchecker.R;
-import jp.mydns.dego.motionchecker.Util.BitmapHelper;
 import jp.mydns.dego.motionchecker.Util.DebugLog;
 import jp.mydns.dego.motionchecker.VideoPlayer.PlaySpeedManager;
 import jp.mydns.dego.motionchecker.VideoPlayer.Video;
@@ -75,6 +70,7 @@ public class VideoViewController {
         R.id.button_paint,
         R.id.button_player,
         R.id.button_lock,
+        R.id.button_motion_image,
     };
 
     private final int[][] visibilityTable = {
@@ -101,6 +97,7 @@ public class VideoViewController {
         {0x08, 0x00, 0x04, 0x00, 0x00, 0x00},   /* button_paint */
         {0x08, 0x00, 0x04, 0x00, 0x00, 0x00},   /* button_player */
         {0x08, 0x00, 0x04, 0x00, 0x00, 0x00},   /* button_lock */
+        {0x08, 0x00, 0x04, 0x00, 0x00, 0x00},   /* button_motion_image */
     };
 
     private final AnimationDirection[] animationDirections = {
@@ -129,10 +126,6 @@ public class VideoViewController {
     };
 
     private boolean isFullScreenPreview;
-
-    private Bitmap videoCapture;
-
-    PixelCopy.OnPixelCopyFinishedListener pixelCopyFinishedListener;
 
     // ---------------------------------------------------------------------------------------------
     // constructor
@@ -454,57 +447,13 @@ public class VideoViewController {
     }
 
     /**
-     * capture
-     */
-    public void capture() {
-        DebugLog.d(TAG, "capture");
-        VideoSurfaceView videoSurfaceView = (VideoSurfaceView) this.views.get(R.id.video_surface_view);
-
-        int width = videoSurfaceView.getWidth();
-        int height = videoSurfaceView.getHeight();
-        this.videoCapture = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        PixelCopy.request(videoSurfaceView, this.videoCapture, this.pixelCopyFinishedListener, new Handler());
-    }
-
-    /**
-     * saveBitmap
+     * getVideoSurfaceView
      *
-     * @return is success
+     * @return video surface view
      */
-    public boolean saveBitmap() {
-        DebugLog.d(TAG, "saveBitmap");
-
-        if (this.videoCapture == null) {
-            return false;
-        }
-
-        BitmapHelper.BitmapType type = BitmapHelper.BitmapType.Capture;
-        return BitmapHelper.saveBitmapToCache(type, this.videoCapture);
-    }
-    /**
-     * setOnPixelCopyFinishedListener
-     *
-     * @param listener pixel copy finished listener
-     */
-    public void setOnPixelCopyFinishedListener(PixelCopy.OnPixelCopyFinishedListener listener) {
-        this.pixelCopyFinishedListener = listener;
-    }
-
-    /**
-     * getSurfaceViewSize
-     *
-     * @return video surface view size
-     */
-    public Rect getSurfaceViewSize() {
-        DebugLog.d(TAG, "getSurfaceViewSize");
-        VideoSurfaceView videoSurfaceView = (VideoSurfaceView) this.views.get(R.id.video_surface_view);
-
-        int left = videoSurfaceView.getLeft();
-        int top = videoSurfaceView.getTop();
-        int right = videoSurfaceView.getRight();
-        int bottom = videoSurfaceView.getBottom();
-        DebugLog.v(TAG, "video surface view layout : (" + left + ", " + top + ", " + right + ", " + bottom + ")");
-        return new Rect(left, top, right, bottom);
+    public VideoSurfaceView getVideoSurfaceView() {
+        DebugLog.d(TAG, "getVideoSurfaceView");
+        return ((VideoSurfaceView) this.views.get(R.id.video_surface_view));
     }
 
     // ---------------------------------------------------------------------------------------------

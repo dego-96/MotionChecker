@@ -26,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
     public static final int REQUEST_PERMISSION_READ_EXTERNAL_STORAGE = 10;
+    public static final int REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE = 30;
     public static final int REQUEST_GALLERY = 20;
 
     private enum Mode {
@@ -223,6 +224,10 @@ public class MainActivity extends AppCompatActivity {
             this.getDrawingManager().setColor(DrawItemBase.ColorType.Yellow);
         } else if (id == R.id.button_color_black) {
             this.getDrawingManager().setColor(DrawItemBase.ColorType.Black);
+        } else if (id == R.id.button_motion_image) {
+            if (this.checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                this.getVideoController().generateMotionImage();
+            }
         }
     }
 
@@ -275,8 +280,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        if (!InstanceHolder.getInstance().getPermissionManager()
-            .getPermission(Manifest.permission.READ_EXTERNAL_STORAGE)) {
+        if (!this.checkPermission(Manifest.permission.READ_EXTERNAL_STORAGE)) {
             DebugLog.e(TAG, "Can not read external storage.");
             return;
         }
@@ -295,21 +299,14 @@ public class MainActivity extends AppCompatActivity {
     private void videoSelect() {
         DebugLog.d(TAG, "videoSelect");
 
-        PermissionManager permissionManager = InstanceHolder.getInstance().getPermissionManager();
-
-        if (permissionManager.getPermission(Manifest.permission.READ_EXTERNAL_STORAGE)) {
+        if (this.checkPermission(Manifest.permission.READ_EXTERNAL_STORAGE)) {
             this.getVideoController().join();
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("video/*");
             startActivityForResult(intent, REQUEST_GALLERY);
         } else {
-            if (!permissionManager.requestPermission(
-                this,
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                REQUEST_PERMISSION_READ_EXTERNAL_STORAGE)) {
-                Toast.makeText(this, this.getString(R.string.toast_no_permission_ext_read), Toast.LENGTH_LONG).show();
-            }
+            Toast.makeText(this, this.getString(R.string.toast_no_permission_ext_read), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -330,5 +327,27 @@ public class MainActivity extends AppCompatActivity {
         }
 
         this.getDrawingManager().changeDrawable(mode == Mode.Paint);
+    }
+
+    /**
+     * checkPermission
+     *
+     * @param permission permission
+     * @return check result (is OK)
+     */
+    private boolean checkPermission(String permission) {
+        DebugLog.d(TAG, "checkPermission");
+        PermissionManager manager = InstanceHolder.getInstance().getPermissionManager();
+        if (manager.getPermission(permission)) {
+            return true;
+        }
+
+        if (permission.equals(Manifest.permission.READ_EXTERNAL_STORAGE)) {
+            manager.requestPermission(this, permission, REQUEST_PERMISSION_READ_EXTERNAL_STORAGE);
+        } else if (permission.equals(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            manager.requestPermission(this, permission, REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE);
+        }
+        return false;
+
     }
 }

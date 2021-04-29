@@ -292,44 +292,51 @@ public class VideoDecoder implements Runnable {
      * @param status status
      */
     private void setStatus(DecoderStatus status, boolean visibility) {
-        DebugLog.d(TAG, "setStatus (" + this.status.name() + " => " + status.name() + ")");
-        this.status = status;
-
-        if (visibility) {
-            Context context = InstanceHolder.getInstance();
-            if (Thread.currentThread().equals(context.getMainLooper().getThread())) {
+        Thread uiThread = InstanceHolder.getInstance().getMainLooper().getThread();
+        if (Thread.currentThread().equals(uiThread)) {
+            // UIスレッド
+            DebugLog.d(TAG, "setStatus (" + this.status.name() + " => " + status.name() + ")");
+            if (visibility) {
                 this.videoListener.setVisibilities(status);
-            } else {
-                this.sendMessage();
+            }
+        } else {
+            // デコード用のスレッド
+            DebugLog.d(TAG_THREAD, "setStatus (" + this.status.name() + " => " + status.name() + ")");
+            if (visibility) {
+                this.notifyChangeStatus(status);
             }
         }
+        this.status = status;
     }
 
     /**
-     * sendMessage
+     * notifyChangeStatus
      */
-    private void sendMessage() {
-        DebugLog.d(TAG, "sendMessage");
+    private void notifyChangeStatus(DecoderStatus status) {
+        DebugLog.d(TAG, "notifyChangeStatus");
+
+        Bundle bundle = new Bundle();
+        bundle.putSerializable(VideoPlayerHandler.MESSAGE_TYPE, VideoPlayerHandler.MessageType.Status);
+        bundle.putSerializable(VideoPlayerHandler.MESSAGE_STATUS, status);
 
         Message message = Message.obtain();
-        Bundle bundle = new Bundle();
-        bundle.putLong(VideoPlayerHandler.MESSAGE_PROGRESS_US, -1);
-        bundle.putSerializable(VideoPlayerHandler.MESSAGE_STATUS, this.getStatus());
         message.setData(bundle);
         this.handler.sendMessage(message);
     }
 
     /**
-     * sendMessage
+     * notifyChangeProgress
      *
      * @param time_us time (microsecond)
      */
-    private void sendMessage(long time_us) {
-        DebugLog.d(TAG_THREAD, "sendMessage(" + time_us + ")");
+    private void notifyChangeProgress(long time_us) {
+        DebugLog.d(TAG_THREAD, "notifyChangeProgress(" + time_us + ")");
 
         Bundle bundle = new Bundle();
+        bundle.putSerializable(VideoPlayerHandler.MESSAGE_TYPE, VideoPlayerHandler.MessageType.Progress);
         bundle.putLong(VideoPlayerHandler.MESSAGE_PROGRESS_US, time_us);
         bundle.putSerializable(VideoPlayerHandler.MESSAGE_FRAME_POSITION, this.position);
+
         Message message = Message.obtain();
         message.setData(bundle);
         this.handler.sendMessage(message);
@@ -367,7 +374,7 @@ public class VideoDecoder implements Runnable {
             }
 
             DebugLog.v(TAG_THREAD, "presentationTimeUs : " + info.presentationTimeUs);
-            this.sendMessage((long) ((float) info.presentationTimeUs * this.videoTimer.getSpeed()));
+            this.notifyChangeProgress((long) ((float) info.presentationTimeUs * this.videoTimer.getSpeed()));
         }
         this.setStatus(DecoderStatus.PAUSED, true);
         this.videoTimer.timerStop();
@@ -400,6 +407,9 @@ public class VideoDecoder implements Runnable {
             }
 
             if (this.queueOutput(info, targetTime)) {
+                DebugLog.v(TAG_THREAD, "presentationTimeUs : " + info.presentationTimeUs);
+                this.notifyChangeProgress((long) ((float) info.presentationTimeUs * this.videoTimer.getSpeed()));
+
                 this.setStatus(DecoderStatus.PAUSED, true);
                 this.videoTimer.timerStop();
                 return;
@@ -503,9 +513,6 @@ public class VideoDecoder implements Runnable {
                     }
 
                     this.videoTimer.setRenderTime(info);
-                    DebugLog.v(TAG_THREAD, "presentationTimeUs : " + info.presentationTimeUs);
-                    this.sendMessage((long) ((float) info.presentationTimeUs * this.videoTimer.getSpeed()));
-
                     return true;
                 }
             }

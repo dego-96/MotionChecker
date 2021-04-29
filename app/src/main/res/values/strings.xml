@@ -18,6 +18,7 @@
     <string name="content_description_capture">Video Capture</string>
     <string name="content_description_player">Video Player Mode</string>
     <string name="content_description_view_lock">View Resize Lock/Unlock</string>
+    <string name="content_description_motion_image">Generate Motion Image</string>
     <string name="current_time_init">00:00:000</string>
     <string name="remain_time_init">--:--:---</string>
     <string-array name="play_speed_text">
