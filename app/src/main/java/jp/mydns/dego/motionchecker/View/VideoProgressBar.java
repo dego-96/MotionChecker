@@ -60,7 +60,7 @@ public class VideoProgressBar extends AppCompatSeekBar implements SeekBar.OnSeek
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
         DebugLog.d(TAG, "onProgressChanged");
         if (fromUser) {
-            InstanceHolder.getInstance().getVideoController().seekTo(progress);
+            InstanceHolder.getInstance().getVideoController().seekTo(progress, false);
         }
     }
 

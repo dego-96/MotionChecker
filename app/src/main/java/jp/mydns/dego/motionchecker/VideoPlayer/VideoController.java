@@ -26,7 +26,7 @@ public class VideoController {
     private final VideoViewController viewController;
     private final VideoDecoder decoder;
     private final PlaySpeedManager speedManager;
-    //    private final ImageAnalyzer analyzer;
+    private final MotionGenerator motionGenerator;
     private Thread videoThread;
 
     private Video video;
@@ -47,7 +47,7 @@ public class VideoController {
         this.viewController = new VideoViewController();
         this.decoder = new VideoDecoder();
         this.speedManager = new PlaySpeedManager();
-//        this.analyzer = new ImageAnalyzer();
+        this.motionGenerator = new MotionGenerator();
 
         this.decoder.setOnVideoChangeListener(new OnVideoChangeListener() {
             @Override
@@ -333,9 +333,10 @@ public class VideoController {
     /**
      * seekTo
      *
-     * @param progress video progress
+     * @param progress  video progress
+     * @param precisely precisely
      */
-    public void seekTo(int progress) {
+    public void seekTo(int progress, boolean precisely) {
         DebugLog.d(TAG, "seekTo");
         if (decoder.getStatus() == VideoDecoder.DecoderStatus.SEEKING) {
             return;
@@ -348,7 +349,7 @@ public class VideoController {
             }
         }
 
-        this.decoder.seekTo(progress);
+        this.decoder.seekTo(progress, precisely);
         this.threadStart();
     }
 
@@ -371,7 +372,7 @@ public class VideoController {
         int progress = this.viewController.getProgress();
         int duration = this.viewController.getDuration();
         if (progress + MOVE_TIME < duration) {
-            this.decoder.seekTo(progress + MOVE_TIME);
+            this.decoder.seekTo(progress + MOVE_TIME, false);
             this.threadStart();
         }
     }
@@ -394,7 +395,7 @@ public class VideoController {
 
         int progress = this.viewController.getProgress();
         if (progress - MOVE_TIME > 0) {
-            this.decoder.seekTo(progress - MOVE_TIME);
+            this.decoder.seekTo(progress - MOVE_TIME, false);
             this.threadStart();
         }
     }
@@ -429,17 +430,11 @@ public class VideoController {
     public void generateMotionImage() {
         DebugLog.d(TAG, "generateMotionImage");
 
-        VideoSurfaceView videoSurfaceView = this.viewController.getVideoSurfaceView();
-        int width = videoSurfaceView.getWidth();
-        int height = videoSurfaceView.getHeight();
-        this.videoCapture = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-
-        PixelCopy.request(
-            videoSurfaceView,
-            this.videoCapture,
-            this.pixelCopyFinishedListener,
-            new Handler()
-        );
+        if (!this.motionGenerator.isStarted()) {
+            int progress = this.viewController.getProgress();
+            this.motionGenerator.start(progress);
+            this.pixelCopyRequest();
+        }
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -490,13 +485,57 @@ public class VideoController {
     }
 
     /**
+     * pixelCopyRequest
+     */
+    private void pixelCopyRequest() {
+        DebugLog.d(TAG, "pixelCopyRequest");
+
+        VideoSurfaceView videoSurfaceView = this.viewController.getVideoSurfaceView();
+        int width = videoSurfaceView.getWidth();
+        int height = videoSurfaceView.getHeight();
+        this.videoCapture = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+
+        PixelCopy.request(
+            videoSurfaceView,
+            this.videoCapture,
+            this.pixelCopyFinishedListener,
+            new Handler()
+        );
+    }
+
+    /**
      * pixelCopyFinished
      */
     private void pixelCopyFinished() {
         DebugLog.d(TAG, "pixelCopyFinished");
 
         if (this.videoCapture != null) {
-            BitmapHelper.saveBitmapToExternal(this.videoCapture);
+            this.motionGenerator.superpose(this.videoCapture);
+        }
+
+        if (this.motionGenerator.needNextFrame()) {
+            this.nextFrame();
+            DebugLog.v(TAG, "join start");
+            try {
+                this.videoThread.join(1000);
+            } catch (InterruptedException exception) {
+                exception.printStackTrace();
+            }
+            DebugLog.v(TAG, "join end");
+            if ((this.videoThread != null && this.videoThread.isAlive()) ||
+                this.decoder.getStatus() != VideoDecoder.DecoderStatus.PAUSED) {
+                DebugLog.e(TAG, "motion image generate error");
+            } else {
+                this.pixelCopyRequest();
+            }
+        } else {
+            // モーション画像の生成終了
+            Bitmap bitmap = this.motionGenerator.createBitmap();
+            BitmapHelper.saveBitmapToExternal(bitmap);
+            int progress = this.motionGenerator.getStartTime();
+            this.seekTo(progress, true);
+
+            this.motionGenerator.reset();
         }
     }
 

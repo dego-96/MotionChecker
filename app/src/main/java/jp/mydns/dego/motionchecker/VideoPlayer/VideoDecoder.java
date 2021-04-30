@@ -26,7 +26,8 @@ public class VideoDecoder implements Runnable {
         PLAYING,
         SEEKING,
         NEXT_FRAME,
-        PREVIOUS_FRAME
+        PREVIOUS_FRAME,
+        SEEK_PRECISE,
     }
 
     public enum FramePosition {
@@ -60,6 +61,7 @@ public class VideoDecoder implements Runnable {
     private boolean isDecoding;
     private int frameRate;
     private long duration;
+    private long seekTarget;
 
     // ---------------------------------------------------------------------------------------------
     // constructor
@@ -199,9 +201,10 @@ public class VideoDecoder implements Runnable {
     /**
      * seekTo
      *
-     * @param progress progress
+     * @param progress  progress
+     * @param precisely precisely
      */
-    void seekTo(int progress) {
+    void seekTo(int progress, boolean precisely) {
         DebugLog.d(TAG, "seekTo(" + progress + ")");
 
         if (progress == 0) {
@@ -212,9 +215,15 @@ public class VideoDecoder implements Runnable {
             this.position = FramePosition.MID;
         }
 
-        this.setStatus(DecoderStatus.SEEKING, true);
+        if (precisely) {
+            this.setStatus(DecoderStatus.SEEK_PRECISE, true);
+            this.seekTarget = progress * 1000;
+            this.extractor.seekTo(this.seekTarget, MediaExtractor.SEEK_TO_PREVIOUS_SYNC);
+        } else {
+            this.setStatus(DecoderStatus.SEEKING, true);
+            this.extractor.seekTo(progress * 1000, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
+        }
         this.decoder.flush();
-        this.extractor.seekTo(progress * 1000, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
     }
 
     /**
@@ -278,6 +287,9 @@ public class VideoDecoder implements Runnable {
                 break;
             case PREVIOUS_FRAME:
                 this.previousFrame();
+                break;
+            case SEEK_PRECISE:
+                this.seekPrecisely();
                 break;
         }
     }
@@ -382,6 +394,33 @@ public class VideoDecoder implements Runnable {
     }
 
     /**
+     * seekPrecisely
+     */
+    private void seekPrecisely() {
+        DebugLog.d(TAG_THREAD, "seekPrecisely");
+
+        MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
+        boolean isEos = false;
+
+        while (true) {
+            if (isEos) {
+                DebugLog.e(TAG_THREAD, "End of stream when seek to target frame");
+                return;
+            } else {
+                isEos = this.queueInput();
+            }
+
+            if (this.queueOutput(info, this.seekTarget)) {
+                DebugLog.v(TAG_THREAD, "presentationTimeUs : " + info.presentationTimeUs);
+                this.notifyChangeProgress((long) ((float) info.presentationTimeUs * this.videoTimer.getSpeed()));
+
+                this.setStatus(DecoderStatus.PAUSED, true);
+                return;
+            }
+        }
+    }
+
+    /**
      * previousFrame
      */
     private void previousFrame() {
@@ -411,7 +450,6 @@ public class VideoDecoder implements Runnable {
                 this.notifyChangeProgress((long) ((float) info.presentationTimeUs * this.videoTimer.getSpeed()));
 
                 this.setStatus(DecoderStatus.PAUSED, true);
-                this.videoTimer.timerStop();
                 return;
             }
         }
@@ -423,6 +461,7 @@ public class VideoDecoder implements Runnable {
      * @return is EOS
      */
     private boolean queueInput() {
+        DebugLog.d(TAG, "queueInput");
         int inIndex = this.decoder.dequeueInputBuffer(10000);
         DebugLog.d(TAG_THREAD, "Input Buffer Index : " + inIndex);
         if (inIndex >= 0) {
@@ -500,6 +539,7 @@ public class VideoDecoder implements Runnable {
             DebugLog.d(TAG_THREAD, "INFO_TRY_AGAIN_LATER");
         } else {
             if (outIndex >= 0) {
+                DebugLog.v(TAG, "info.presentationTimeUs : " + info.presentationTimeUs);
                 if (info.presentationTimeUs < target) {
                     this.decoder.releaseOutputBuffer(outIndex, false);
                 } else {
