@@ -123,6 +123,7 @@ public class VideoViewController {
         AnimationDirection.Up,      /* button_paint */
         AnimationDirection.Up,      /* button_player */
         AnimationDirection.Up,      /* button_lock */
+        AnimationDirection.Up,      /* button_motion_image */
     };
 
     private boolean isFullScreenPreview;

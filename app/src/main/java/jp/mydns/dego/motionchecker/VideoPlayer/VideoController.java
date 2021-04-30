@@ -72,6 +72,8 @@ public class VideoController {
                 DebugLog.d(TAG, "onPixelCopyFinished");
                 if (copyResult == PixelCopy.SUCCESS) {
                     pixelCopyFinished();
+                } else {
+                    DebugLog.w(TAG, "PixelCopy Error. (" + copyResult + ")");
                 }
             }
         };
@@ -434,6 +436,8 @@ public class VideoController {
             int progress = this.viewController.getProgress();
             this.motionGenerator.start(progress);
             this.pixelCopyRequest();
+        } else {
+            DebugLog.w(TAG, "Motion image generation is already started.");
         }
     }
 
@@ -514,6 +518,7 @@ public class VideoController {
         }
 
         if (this.motionGenerator.needNextFrame()) {
+            // 次のフレームを描画する
             this.nextFrame();
             DebugLog.v(TAG, "join start");
             try {
@@ -528,14 +533,39 @@ public class VideoController {
             } else {
                 this.pixelCopyRequest();
             }
-        } else {
-            // モーション画像の生成終了
-            Bitmap bitmap = this.motionGenerator.createBitmap();
-            BitmapHelper.saveBitmapToExternal(bitmap);
-            int progress = this.motionGenerator.getStartTime();
-            this.seekTo(progress, true);
+        } else if (this.motionGenerator.nextStep()) {
+            if (this.motionGenerator.isEnd()) {
+                // モーション画像の生成終了
+                DebugLog.v(TAG, "check");
+                int width = this.viewController.getVideoSurfaceView().getWidth();
+                int height = this.viewController.getVideoSurfaceView().getHeight();
+                Bitmap bitmap = this.motionGenerator.createBitmap(width, height);
+                if (BitmapHelper.saveBitmapToExternal(bitmap)) {
+                    DebugLog.v(TAG, "bitmap is saved in external storage.");
+                } else {
+                    DebugLog.e(TAG, "bitmap save error.");
+                }
 
-            this.motionGenerator.reset();
+                this.motionGenerator.clear();
+            } else {
+                // モーション画像の先頭のフレームに移動
+                int progress = this.motionGenerator.getStartTime();
+                this.seekTo(progress, true);
+
+                DebugLog.v(TAG, "join start");
+                try {
+                    this.videoThread.join(1000);
+                } catch (InterruptedException exception) {
+                    exception.printStackTrace();
+                }
+                DebugLog.v(TAG, "join end");
+                if ((this.videoThread != null && this.videoThread.isAlive()) ||
+                    this.decoder.getStatus() != VideoDecoder.DecoderStatus.PAUSED) {
+                    DebugLog.e(TAG, "motion image generate error");
+                } else {
+                    this.pixelCopyRequest();
+                }
+            }
         }
     }
 

@@ -21,7 +21,7 @@ public class BitmapHelper {
     // constant values
     // ---------------------------------------------------------------------------------------------
     private static final String TAG = "BitmapHelper";
-//    private static final String IMAGE_FILENAME = "capture.png";
+    //    private static final String IMAGE_FILENAME = "capture.png";
     private static final String IMAGE_EXTERNAL_FILENAME = "MotionImage_DATE.png";
 
     // ---------------------------------------------------------------------------------------------

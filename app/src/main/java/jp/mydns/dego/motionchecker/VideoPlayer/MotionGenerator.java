@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 
 import jp.mydns.dego.motionchecker.Util.BitmapHelper;
 import jp.mydns.dego.motionchecker.Util.DebugLog;
+import jp.mydns.dego.motionchecker.Util.PixelHelper;
 
 public class MotionGenerator {
 
@@ -11,15 +12,25 @@ public class MotionGenerator {
     // constant values
     // ---------------------------------------------------------------------------------------------
     private static final String TAG = "MotionGenerator";
-    private static final int SUPERPOSE_FRAME_NUM = 10;
+    private static final int SUPERPOSE_FRAME_NUM = 20;
+
+    public enum Step {
+        NONE,
+        AVERAGE,
+        DISTANCE,
+        SUPERPOSE,
+        END,
+    }
 
     // ---------------------------------------------------------------------------------------------
     // private fields
     // ---------------------------------------------------------------------------------------------
-    private int superposeCount;
+    private int count;
     private int[] averagePixels;
-    private int width;
-    private int height;
+    private int[] distanceMax;
+    private int[] distant;
+    private int[] resultPixels;
+    private Step step;
     private int startTime;
 
     // ---------------------------------------------------------------------------------------------
@@ -43,20 +54,21 @@ public class MotionGenerator {
      * start
      */
     public void start(int time_ms) {
-        DebugLog.d(TAG, "start");
-        DebugLog.v(TAG, "start time : " + time_ms);
-        this.superposeCount = 0;
+        DebugLog.d(TAG, "start (" + time_ms + ")");
+        this.count = 0;
         this.averagePixels = null;
-        this.width = 0;
-        this.height = 0;
+        this.distanceMax = null;
+        this.distant = null;
+        this.resultPixels = null;
+        this.step = Step.AVERAGE;
         this.startTime = time_ms;
     }
 
     /**
-     * reset
+     * clear
      */
-    public void reset() {
-        DebugLog.d(TAG, "reset");
+    public void clear() {
+        DebugLog.d(TAG, "clear");
         this.init();
     }
 
@@ -66,11 +78,7 @@ public class MotionGenerator {
      * @return is started
      */
     public boolean isStarted() {
-        return (
-            this.averagePixels != null &&
-                this.superposeCount > 0 &&
-                this.startTime <= 0
-        );
+        return (this.startTime > 0);
     }
 
     /**
@@ -79,7 +87,46 @@ public class MotionGenerator {
      * @return need next frame
      */
     public boolean needNextFrame() {
-        return (this.averagePixels != null && this.superposeCount < SUPERPOSE_FRAME_NUM);
+        return (
+            (this.step == Step.AVERAGE || this.step == Step.DISTANCE || this.step == Step.SUPERPOSE) &&
+                this.count < SUPERPOSE_FRAME_NUM);
+    }
+
+    /**
+     * nextStep
+     *
+     * @return is next step
+     */
+    public boolean nextStep() {
+        DebugLog.d(TAG, "nextStep (count:" + this.count + ", step:" + this.step + ")");
+        if (this.count == SUPERPOSE_FRAME_NUM) {
+            if (this.step == Step.AVERAGE) {
+                this.step = Step.DISTANCE;
+                this.count = 0;
+            } else if (this.step == Step.DISTANCE) {
+                this.step = Step.SUPERPOSE;
+                this.count = 0;
+            } else if (this.step == Step.SUPERPOSE) {
+                this.step = Step.END;
+                this.count = 0;
+            } else {
+                return false;
+            }
+            DebugLog.v(TAG, "step: " + this.step);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * isEnd
+     *
+     * @return is end
+     */
+    public boolean isEnd() {
+        DebugLog.d(TAG, "isEnd");
+        return (this.step == Step.END);
     }
 
     /**
@@ -97,27 +144,54 @@ public class MotionGenerator {
      * @param captureImage capture image bitmap
      */
     public void superpose(Bitmap captureImage) {
-        DebugLog.d(TAG, "superpose");
+        DebugLog.d(TAG, "superpose : " + this.step + " (" + this.count + "/" + SUPERPOSE_FRAME_NUM + ")");
 
-        this.width = captureImage.getWidth();
-        this.height = captureImage.getHeight();
-        int[] pixels = new int[width * height];
-        captureImage.getPixels(pixels, 0, this.width, 0, 0, this.width, this.height);
+        if (this.count >= SUPERPOSE_FRAME_NUM) {
+            DebugLog.e(TAG, "superpose count error.");
+            return;
+        }
+        if (this.step == Step.NONE) {
+            DebugLog.e(TAG, "invalidate step.");
+            return;
+        }
 
-        int index;
-        if (this.averagePixels == null) {
-            this.averagePixels = new int[this.width * this.height];
-            for (index = 0; index < this.width * this.height; index++) {
-                this.averagePixels[index] = 0x00000000;
+        int width = captureImage.getWidth();
+        int height = captureImage.getHeight();
+        int length = width * height;
+        int[] pixels = new int[length];
+        captureImage.getPixels(pixels, 0, width, 0, 0, width, height);
+
+        if (this.step == Step.AVERAGE) {
+            if (this.averagePixels == null) {
+                this.initArrays(length);
             }
-        }
 
-        for (index = 0; index < this.width * this.height; index++) {
-            int pixel = this.averagePixels[index];
-            this.averagePixels[index] = this.calcAveragePixel(pixel, pixels[index], this.superposeCount);
+            for (int index = 0; index < length; index++) {
+                this.averagePixels[index] = PixelHelper.average(
+                    this.averagePixels[index],
+                    pixels[index],
+                    this.count
+                );
+            }
+        } else if (this.step == Step.DISTANCE) {
+            for (int index = 0; index < length; index++) {
+                int distance = PixelHelper.distanceSq(this.averagePixels[index], pixels[index]);
+                if (this.distanceMax[index] < distance) {
+                    this.distanceMax[index] = distance;
+                    this.distant[index] = this.count;
+                }
+            }
+        } else if (this.step == Step.SUPERPOSE) {
+            for (int index = 0; index < length; index++) {
+                if (this.count == this.distant[index]) {
+                    int pixel = PixelHelper.average(this.averagePixels[index], pixels[index]);
+                    this.resultPixels[index] = pixel;
+                }
+            }
+//        } else if (this.step == Step.END) {
+//            // nothing to do.
         }
-
-        this.superposeCount++;
+        this.count++;
     }
 
     /**
@@ -125,9 +199,9 @@ public class MotionGenerator {
      *
      * @return bitmap
      */
-    public Bitmap createBitmap() {
+    public Bitmap createBitmap(int width, int height) {
         DebugLog.d(TAG, "createBitmap");
-        return BitmapHelper.createBitmapFromPixels(this.averagePixels, this.width, this.height);
+        return BitmapHelper.createBitmapFromPixels(this.resultPixels, width, height);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -139,34 +213,33 @@ public class MotionGenerator {
      */
     private void init() {
         DebugLog.d(TAG, "init");
-        this.superposeCount = 0;
+        this.count = 0;
         this.averagePixels = null;
-        this.width = 0;
-        this.height = 0;
-        this.startTime = 0;
+        this.distanceMax = null;
+        this.distant = null;
+        this.resultPixels = null;
+        this.step = Step.NONE;
+        this.startTime = -1;
     }
 
     /**
-     * calcAveragePixel
+     * initArrays
      *
-     * @param basePixel      base pixel
-     * @param newPixel       new pixel
-     * @param superposeCount superpose count
-     * @return average pixel
+     * @param length length
      */
-    private int calcAveragePixel(int basePixel, int newPixel, int superposeCount) {
-        int baseR = (basePixel & 0x00FF0000) >> 16;
-        int baseG = (basePixel & 0x0000FF00) >> 8;
-        int baseB = (basePixel & 0x000000FF);
+    private void initArrays(int length) {
+        DebugLog.d(TAG, "initArrays");
 
-        int newR = (newPixel & 0x00FF0000) >> 16;
-        int newG = (newPixel & 0x0000FF00) >> 8;
-        int newB = (newPixel & 0x000000FF);
+        this.averagePixels = new int[length];
+        this.distanceMax = new int[length];
+        this.distant = new int[length];
+        this.resultPixels = new int[length];
 
-        int r = ((baseR * superposeCount + newR) / (superposeCount + 1));
-        int g = ((baseG * superposeCount + newG) / (superposeCount + 1));
-        int b = ((baseB * superposeCount + newB) / (superposeCount + 1));
-
-        return (0xFF000000) | ((int) r << 16) | ((int) g << 8) | ((int) b);
+        for (int index = 0; index < length; index++) {
+            this.averagePixels[index] = 0x00000000;
+            this.distanceMax[index] = 0x00000000;
+            this.distant[index] = 0x00000000;
+            this.resultPixels[index] = 0x00000000;
+        }
     }
 }
