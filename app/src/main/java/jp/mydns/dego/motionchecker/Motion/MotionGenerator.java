@@ -1,7 +1,13 @@
-package jp.mydns.dego.motionchecker.VideoPlayer;
+package jp.mydns.dego.motionchecker.Motion;
 
+import android.app.Activity;
 import android.graphics.Bitmap;
+import android.widget.SeekBar;
+import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+
+import jp.mydns.dego.motionchecker.R;
 import jp.mydns.dego.motionchecker.Util.BitmapHelper;
 import jp.mydns.dego.motionchecker.Util.DebugLog;
 import jp.mydns.dego.motionchecker.Util.PixelHelper;
@@ -12,7 +18,11 @@ public class MotionGenerator {
     // constant values
     // ---------------------------------------------------------------------------------------------
     private static final String TAG = "MotionGenerator";
-    private static final int SUPERPOSE_FRAME_NUM = 20;
+    private static final int DEFAULT_FRAME_NUM = 20;
+    private static final int FRAME_NUM_MIN = 5;
+    private static final int FRAME_NUM_MAX = 60;
+
+    public static final int FRAME_NUM_OFFSET = 5;
 
     public enum Step {
         NONE,
@@ -25,6 +35,7 @@ public class MotionGenerator {
     // ---------------------------------------------------------------------------------------------
     // private fields
     // ---------------------------------------------------------------------------------------------
+    private Activity activity;
     private int count;
     private int[] averagePixels;
     private int[] distanceMax;
@@ -32,6 +43,7 @@ public class MotionGenerator {
     private int[] resultPixels;
     private Step step;
     private int startTime;
+    private int frameNum;
 
     // ---------------------------------------------------------------------------------------------
     // constructor
@@ -51,7 +63,44 @@ public class MotionGenerator {
     // ---------------------------------------------------------------------------------------------
 
     /**
+     * init
+     *
+     * @param activity activity
+     * @param listener frame count seek bar change listener
+     */
+    public void init(@NonNull Activity activity, SeekBar.OnSeekBarChangeListener listener) {
+        DebugLog.d(TAG, "init");
+        this.init();
+
+        this.activity = activity;
+        this.setFrameNumText(DEFAULT_FRAME_NUM);
+
+        SeekBar seekBar = (SeekBar) activity.findViewById(R.id.seek_bar_frame_count);
+        seekBar.setOnSeekBarChangeListener(listener);
+        seekBar.setMax(FRAME_NUM_MAX - FRAME_NUM_OFFSET);
+        seekBar.setProgress(DEFAULT_FRAME_NUM - FRAME_NUM_OFFSET);
+    }
+
+    /**
+     * setFrameNum
+     *
+     * @param frameNum video frame number
+     */
+    public void setFrameNum(int frameNum) {
+        DebugLog.d(TAG, "setFrameNum");
+        if (FRAME_NUM_MIN <= frameNum && frameNum <= FRAME_NUM_MAX) {
+            this.frameNum = frameNum;
+        } else {
+            this.frameNum = DEFAULT_FRAME_NUM;
+        }
+
+        this.setFrameNumText(frameNum);
+    }
+
+    /**
      * start
+     *
+     * @param time_ms time (millis)
      */
     public void start(int time_ms) {
         DebugLog.d(TAG, "start (" + time_ms + ")");
@@ -89,7 +138,7 @@ public class MotionGenerator {
     public boolean needNextFrame() {
         return (
             (this.step == Step.AVERAGE || this.step == Step.DISTANCE || this.step == Step.SUPERPOSE) &&
-                this.count < SUPERPOSE_FRAME_NUM);
+                this.count < this.frameNum);
     }
 
     /**
@@ -99,7 +148,7 @@ public class MotionGenerator {
      */
     public boolean nextStep() {
         DebugLog.d(TAG, "nextStep (count:" + this.count + ", step:" + this.step + ")");
-        if (this.count == SUPERPOSE_FRAME_NUM) {
+        if (this.count == this.frameNum) {
             if (this.step == Step.AVERAGE) {
                 this.step = Step.DISTANCE;
                 this.count = 0;
@@ -144,9 +193,9 @@ public class MotionGenerator {
      * @param captureImage capture image bitmap
      */
     public void superpose(Bitmap captureImage) {
-        DebugLog.d(TAG, "superpose : " + this.step + " (" + this.count + "/" + SUPERPOSE_FRAME_NUM + ")");
+        DebugLog.d(TAG, "superpose : " + this.step + " (" + this.count + "/" + this.frameNum + ")");
 
-        if (this.count >= SUPERPOSE_FRAME_NUM) {
+        if (this.count >= this.frameNum) {
             DebugLog.e(TAG, "superpose count error.");
             return;
         }
@@ -212,7 +261,7 @@ public class MotionGenerator {
      * init
      */
     private void init() {
-        DebugLog.d(TAG, "init");
+        DebugLog.d(TAG, "init (private)");
         this.count = 0;
         this.averagePixels = null;
         this.distanceMax = null;
@@ -220,6 +269,7 @@ public class MotionGenerator {
         this.resultPixels = null;
         this.step = Step.NONE;
         this.startTime = -1;
+        this.frameNum = DEFAULT_FRAME_NUM;
     }
 
     /**
@@ -241,5 +291,20 @@ public class MotionGenerator {
             this.distant[index] = 0x00000000;
             this.resultPixels[index] = 0x00000000;
         }
+    }
+
+    /**
+     * setFrameNumText
+     */
+    private void setFrameNumText(int frameNum) {
+        DebugLog.d(TAG, "setFrameNumText");
+
+        if (this.activity == null) {
+            DebugLog.e(TAG, "activity is null.");
+        }
+
+        TextView textView = (TextView) this.activity.findViewById(R.id.text_motion_frame_count);
+        String textFrameNum = this.activity.getString(R.string.text_frame_count) + frameNum;
+        textView.setText(textFrameNum);
     }
 }

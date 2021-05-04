@@ -31,7 +31,8 @@ public class MainActivity extends AppCompatActivity {
 
     private enum Mode {
         Video,
-        Paint
+        Paint,
+        Motion,
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -225,15 +226,27 @@ public class MainActivity extends AppCompatActivity {
         } else if (id == R.id.button_color_black) {
             this.getDrawingManager().setColor(DrawItemBase.ColorType.Black);
         } else if (id == R.id.button_motion_image) {
-            if (this.checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                this.getVideoController().generateMotionImage();
-            }
+            this.setMode(Mode.Motion);
+        } else if (id == R.id.button_motion_generate) {
+            this.generateMotionImage();
+        } else if (id == R.id.button_back) {
+            this.setMode(Mode.Video);
         }
     }
 
     // ---------------------------------------------------------------------------------------------
     // Private Method
     // ---------------------------------------------------------------------------------------------
+
+    /**
+     * generateMotionImage
+     */
+    private void generateMotionImage() {
+        DebugLog.d(TAG, "generateMotionImage");
+        if (this.checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            this.getVideoController().generateMotionImage();
+        }
+    }
 
     /**
      * getVideoController
@@ -321,9 +334,16 @@ public class MainActivity extends AppCompatActivity {
         if (mode == Mode.Video) {
             this.findViewById(R.id.layout_video_controller).setVisibility(View.VISIBLE);
             this.findViewById(R.id.layout_video_paint).setVisibility(View.GONE);
+            this.findViewById(R.id.layout_motion_generator).setVisibility(View.GONE);
         } else if (mode == Mode.Paint) {
             this.findViewById(R.id.layout_video_paint).setVisibility(View.VISIBLE);
             this.findViewById(R.id.layout_video_controller).setVisibility(View.GONE);
+            this.findViewById(R.id.layout_motion_generator).setVisibility(View.GONE);
+        } else if (mode == Mode.Motion) {
+            this.findViewById(R.id.layout_motion_generator).setVisibility(View.VISIBLE);
+            this.findViewById(R.id.layout_video_controller).setVisibility(View.GONE);
+            this.findViewById(R.id.layout_video_paint).setVisibility(View.GONE);
+            this.getVideoController().initMotionGenerator(this);
         }
 
         this.getDrawingManager().changeDrawable(mode == Mode.Paint);

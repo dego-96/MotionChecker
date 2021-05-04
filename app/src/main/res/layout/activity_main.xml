@@ -42,6 +42,9 @@
         <!-- Video Paint Layout -->
         <include layout="@layout/video_paint" />
 
+        <!-- Motion Image Generator -->
+        <include layout="@layout/motion_generator" />
+
     </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

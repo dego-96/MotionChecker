@@ -6,7 +6,9 @@ import android.net.Uri;
 import android.os.Handler;
 import android.view.PixelCopy;
 import android.view.Surface;
+import android.widget.SeekBar;
 
+import jp.mydns.dego.motionchecker.Motion.MotionGenerator;
 import jp.mydns.dego.motionchecker.Util.BitmapHelper;
 import jp.mydns.dego.motionchecker.Util.DebugLog;
 import jp.mydns.dego.motionchecker.View.VideoSurfaceView;
@@ -34,6 +36,7 @@ public class VideoController {
 
     private Bitmap videoCapture;
     private final PixelCopy.OnPixelCopyFinishedListener pixelCopyFinishedListener;
+    private final SeekBar.OnSeekBarChangeListener frameNumChangeListener;
 
     // ---------------------------------------------------------------------------------------------
     // constructor
@@ -75,6 +78,24 @@ public class VideoController {
                 } else {
                     DebugLog.w(TAG, "PixelCopy Error. (" + copyResult + ")");
                 }
+            }
+        };
+
+        this.frameNumChangeListener = new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                DebugLog.d(TAG, "onProgressChanged");
+                motionGenerator.setFrameNum(MotionGenerator.FRAME_NUM_OFFSET + progress);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                DebugLog.d(TAG, "onStartTrackingTouch");
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                DebugLog.d(TAG, "onStopTrackingTouch");
             }
         };
     }
@@ -424,6 +445,14 @@ public class VideoController {
     public void viewLock() {
         DebugLog.d(TAG, "viewLock");
         this.viewController.changeViewLock();
+    }
+
+    /**
+     * initMotionGenerator
+     */
+    public void initMotionGenerator(Activity activity) {
+        DebugLog.d(TAG, "initMotionGenerator");
+        this.motionGenerator.init(activity, this.frameNumChangeListener);
     }
 
     /**
