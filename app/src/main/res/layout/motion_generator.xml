@@ -28,17 +28,6 @@
             android:layout_height="match_parent"
             android:layout_weight="1" />
 
-        <Button
-            android:id="@+id/button_motion_generate"
-            android:layout_width="wrap_content"
-            android:layout_height="60dp"
-            android:layout_margin="10dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:onClick="onButtonClicked"
-            android:text="@string/button_generate_motion_image"
-            android:textSize="12sp" />
-
     </LinearLayout>
 
     <LinearLayout
@@ -62,22 +51,43 @@
             android:layout_gravity="bottom"
             android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/text_motion_frame_count"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:text="@string/text_frame_count"
-                android:textColor="@android:color/white"
-                android:textSize="18sp" />
-
-            <SeekBar
-                android:id="@+id/seek_bar_frame_count"
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:layout_margin="20dp"
-                android:layout_weight="1" />
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/text_motion_frame_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10dp"
+                    android:text="@string/text_frame_count"
+                    android:textColor="@android:color/white"
+                    android:textSize="18sp" />
+
+                <SeekBar
+                    android:id="@+id/seek_bar_frame_count"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginLeft="15dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginRight="15dp"
+                    android:layout_marginBottom="10dp" />
+
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/button_motion_generate"
+                android:layout_width="wrap_content"
+                android:layout_height="60dp"
+                android:layout_margin="10dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:onClick="onButtonClicked"
+                android:text="@string/button_generate_motion_image"
+                android:textSize="12sp" />
 
         </LinearLayout>
 
