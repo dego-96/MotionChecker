@@ -198,10 +198,10 @@ public class MainActivity extends AppCompatActivity {
             this.setMode(Mode.Video);
         } else if (id == R.id.button_lock) {
             this.getVideoController().viewLock();
-//        } else if (id == R.id.button_paint_undo) {
-//            // TODO:
-//        } else if (id == R.id.button_paint_redo) {
-//            // TODO:
+        } else if (id == R.id.button_paint_undo) {
+            this.getDrawingManager().undo();
+        } else if (id == R.id.button_paint_redo) {
+            this.getDrawingManager().redo();
 //        } else if (id == R.id.button_paint_grid) {
 //            this.getDrawingManager().changeGrid();
         } else if (id == R.id.button_paint_line) {

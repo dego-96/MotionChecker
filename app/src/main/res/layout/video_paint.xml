@@ -26,7 +26,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="top|center_horizontal"
         android:orientation="horizontal"
-        android:visibility="gone">
+        android:visibility="visible">
 
         <!-- undo -->
         <ImageView
@@ -34,9 +34,8 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_margin="10dp"
-            android:clickable="true"
+            android:clickable="false"
             android:contentDescription="@string/content_description_paint_undo"
-            android:focusable="true"
             android:onClick="onButtonClicked"
             android:src="@drawable/button_paint_undo"
             android:visibility="visible" />
@@ -47,9 +46,8 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_margin="10dp"
-            android:clickable="true"
+            android:clickable="false"
             android:contentDescription="@string/content_description_paint_redo"
-            android:focusable="true"
             android:onClick="onButtonClicked"
             android:src="@drawable/button_paint_redo"
             android:visibility="visible" />

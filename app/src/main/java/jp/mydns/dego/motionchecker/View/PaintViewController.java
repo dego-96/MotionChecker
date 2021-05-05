@@ -171,6 +171,37 @@ public class PaintViewController {
         drawSurfaceView.clear();
     }
 
+    /**
+     * redraw
+     */
+    public void redraw() {
+        DebugLog.d(TAG, "redraw");
+        DrawSurfaceView drawSurfaceView = (DrawSurfaceView) this.views.get(R.id.draw_surface_view);
+        drawSurfaceView.redraw();
+    }
+
+    /**
+     * setUndoEnabled
+     *
+     * @param enabled is button enabled
+     */
+    public void setUndoEnabled(boolean enabled) {
+        DebugLog.d(TAG, "setUndoEnabled");
+        ImageView imageView = (ImageView) this.views.get(R.id.button_paint_undo);
+        imageView.setEnabled(enabled);
+    }
+
+    /**
+     * setRedoEnabled
+     *
+     * @param enabled is button enabled
+     */
+    public void setRedoEnabled(boolean enabled) {
+        DebugLog.d(TAG, "setRedoEnabled");
+        ImageView imageView = (ImageView) this.views.get(R.id.button_paint_redo);
+        imageView.setEnabled(enabled);
+    }
+
     // ---------------------------------------------------------------------------------------------
     // private method
     // ---------------------------------------------------------------------------------------------

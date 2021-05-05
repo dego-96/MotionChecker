@@ -195,6 +195,17 @@ public class DrawSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         this.getHolder().unlockCanvasAndPost(canvas);
     }
 
+    /**
+     * redraw
+     */
+    public void redraw() {
+        DebugLog.d(TAG, "redraw");
+
+        Canvas canvas = this.getHolder().lockCanvas();
+        this.draw(canvas);
+        this.getHolder().unlockCanvasAndPost(canvas);
+    }
+
     // ---------------------------------------------------------------------------------------------
     // Private Method
     // ---------------------------------------------------------------------------------------------
@@ -342,7 +353,8 @@ public class DrawSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     }
 
     private List<DrawItemBase> getDrawItems() {
-        return InstanceHolder.getInstance().getDrawingManager().getDrawItems();
+        return InstanceHolder.getInstance().getDrawingManager().getActiveDrawItems();
+//        return InstanceHolder.getInstance().getDrawingManager().getDrawItems();
     }
 
     /**

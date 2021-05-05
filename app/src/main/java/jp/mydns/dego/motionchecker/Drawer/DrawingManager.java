@@ -22,6 +22,7 @@ public class DrawingManager {
     private DrawItemBase.DrawType drawType;
     private DrawItemBase.ColorType colorType;
     private final List<DrawItemBase> drawItems;
+    private int lastIndex;
 
     private final int[] colorTable = {
         Color.argb(0x50, 0xFF, 0xFF, 0xFF), /* white */
@@ -46,6 +47,7 @@ public class DrawingManager {
         this.drawType = DrawItemBase.DrawType.Path;
         this.colorType = DrawItemBase.ColorType.Red;
         this.drawItems = new ArrayList<>();
+        this.lastIndex = 0;
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -63,6 +65,8 @@ public class DrawingManager {
 
         this.viewController.changeDrawTypeImageResource(this.drawType);
         this.viewController.changeColorImageResource(this.colorType);
+        this.viewController.setUndoEnabled(false);
+        this.viewController.setRedoEnabled(false);
     }
 
     /**
@@ -120,6 +124,46 @@ public class DrawingManager {
     }
 
     /**
+     * undo
+     */
+    public void undo() {
+        DebugLog.d(TAG, "undo");
+        if (this.lastIndex > 0) {
+            this.lastIndex--;
+            this.viewController.redraw();
+        } else {
+            DebugLog.e(TAG, "undo index error");
+        }
+
+        if (this.lastIndex <= 0) {
+            this.viewController.setUndoEnabled(false);
+        }
+        if (this.lastIndex < this.drawItems.size()) {
+            this.viewController.setRedoEnabled(true);
+        }
+    }
+
+    /**
+     * redo
+     */
+    public void redo() {
+        DebugLog.d(TAG, "redo");
+        if (this.lastIndex < this.drawItems.size()) {
+            this.lastIndex++;
+            this.viewController.redraw();
+        } else {
+            DebugLog.e(TAG, "redo index error");
+        }
+
+        if (this.lastIndex >= this.drawItems.size()) {
+            this.viewController.setRedoEnabled(false);
+        }
+        if (this.lastIndex > 0) {
+            this.viewController.setUndoEnabled(true);
+        }
+    }
+
+    /**
      * clear
      */
     public void clear() {
@@ -135,16 +179,25 @@ public class DrawingManager {
      */
     public void addDrawItem(DrawItemBase item) {
         DebugLog.d(TAG, "addDrawItem");
+        if (this.lastIndex < this.drawItems.size()) {
+            for (int index = this.drawItems.size(); index > this.lastIndex; index--) {
+                this.drawItems.remove(index - 1);
+            }
+        }
         this.drawItems.add(item);
+        this.lastIndex++;
+
+        this.viewController.setUndoEnabled(true);
+        this.viewController.setRedoEnabled(false);
     }
 
     /**
-     * getDrawItems
+     * getActiveDrawItems
      *
-     * @return draw items
+     * @return active draw items
      */
-    public List<DrawItemBase> getDrawItems() {
-        return this.drawItems;
+    public List<DrawItemBase> getActiveDrawItems() {
+        return this.drawItems.subList(0, this.lastIndex);
     }
 
     // ---------------------------------------------------------------------------------------------
