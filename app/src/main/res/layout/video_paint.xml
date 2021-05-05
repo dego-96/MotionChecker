@@ -215,7 +215,7 @@
                 android:focusable="true"
                 android:onClick="onButtonClicked"
                 android:src="@drawable/button_paint_rect"
-                android:visibility="gone" />
+                android:visibility="visible" />
 
             <Space
                 android:layout_width="0dp"
@@ -232,7 +232,7 @@
                 android:focusable="true"
                 android:onClick="onButtonClicked"
                 android:src="@drawable/button_paint_round"
-                android:visibility="gone" />
+                android:visibility="visible" />
 
             <Space
                 android:layout_width="0dp"

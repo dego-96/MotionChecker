@@ -6,6 +6,8 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -16,6 +18,8 @@ import java.util.List;
 import jp.mydns.dego.motionchecker.Drawer.DrawItemBase;
 import jp.mydns.dego.motionchecker.Drawer.LineItem;
 import jp.mydns.dego.motionchecker.Drawer.PathItem;
+import jp.mydns.dego.motionchecker.Drawer.RectItem;
+import jp.mydns.dego.motionchecker.Drawer.RoundItem;
 import jp.mydns.dego.motionchecker.InstanceHolder;
 import jp.mydns.dego.motionchecker.Util.DebugLog;
 
@@ -124,6 +128,10 @@ public class DrawSurfaceView extends SurfaceView implements SurfaceHolder.Callba
             this.createPath(event);
         } else if (drawType == DrawItemBase.DrawType.Line) {
             this.createLine(event);
+        } else if (drawType == DrawItemBase.DrawType.Rect) {
+            this.createRect(event);
+        } else if (drawType == DrawItemBase.DrawType.Round) {
+            this.createRound(event);
         }
 
         Canvas canvas = this.getHolder().lockCanvas();
@@ -211,7 +219,6 @@ public class DrawSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         this.currentItem = null;
         this.paint = new Paint();
         this.paint.setColor(this.getColor());
-        this.paint.setStyle(Paint.Style.STROKE);
         this.paint.setStrokeCap(Paint.Cap.ROUND);
         this.paint.setAntiAlias(true);
         this.paint.setStrokeWidth(10.0f);
@@ -284,6 +291,48 @@ public class DrawSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     }
 
     /**
+     * createRect
+     *
+     * @param event motion event
+     */
+    private void createRect(MotionEvent event) {
+        DebugLog.d(TAG, "createRect");
+        float x = event.getX();
+        float y = event.getY();
+
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            this.currentItem = new RectItem(this.getColor());
+            ((RectItem) this.currentItem).start(x, y);
+        } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+            ((RectItem) this.currentItem).end(x, y);
+        } else if (event.getAction() == MotionEvent.ACTION_UP) {
+            ((RectItem) this.currentItem).end(x, y);
+            this.addItem();
+        }
+    }
+
+    /**
+     * createRound
+     *
+     * @param event motion event
+     */
+    private void createRound(MotionEvent event) {
+        DebugLog.d(TAG, "createRound");
+        float x = event.getX();
+        float y = event.getY();
+
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            this.currentItem = new RoundItem(this.getColor());
+            ((RoundItem) this.currentItem).start(x, y);
+        } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+            ((RoundItem) this.currentItem).end(x, y);
+        } else if (event.getAction() == MotionEvent.ACTION_UP) {
+            ((RoundItem) this.currentItem).end(x, y);
+            this.addItem();
+        }
+    }
+
+    /**
      * addItem
      */
     private void addItem() {
@@ -324,10 +373,20 @@ public class DrawSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     private void drawItem(Canvas canvas, DrawItemBase item) {
         DebugLog.d(TAG, "drawItem");
         if (item instanceof PathItem) {
+            this.paint.setStyle(Paint.Style.STROKE);
             canvas.drawPath(((PathItem) item).getPath(), this.paint);
         } else if (item instanceof LineItem) {
+            this.paint.setStyle(Paint.Style.STROKE);
             float[] points = ((LineItem) item).getPoints();
             canvas.drawLine(points[0], points[1], points[2], points[3], this.paint);
+        } else if (item instanceof RectItem) {
+            this.paint.setStyle(Paint.Style.FILL);
+            Rect rect = ((RectItem) item).getRect();
+            canvas.drawRect(rect, this.paint);
+        } else if (item instanceof RoundItem) {
+            this.paint.setStyle(Paint.Style.FILL);
+            RectF round = ((RoundItem) item).getRound();
+            canvas.drawOval(round, this.paint);
         }
     }
 
