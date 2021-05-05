@@ -170,6 +170,9 @@ public class DrawingManager {
         DebugLog.d(TAG, "clear");
         this.viewController.clear();
         this.drawItems.clear();
+        this.lastIndex = 0;
+        this.viewController.setUndoEnabled(false);
+        this.viewController.setRedoEnabled(false);
     }
 
     /**
