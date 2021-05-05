@@ -20,6 +20,7 @@
     <string name="content_description_view_lock">View Resize Lock/Unlock</string>
     <string name="content_description_back">Back</string>
     <string name="content_description_motion_image">Generate Motion Image</string>
+    <string name="content_description_motion_result">Motion Image</string>
     <string name="current_time_init">00:00:000</string>
     <string name="remain_time_init">--:--:---</string>
     <string-array name="play_speed_text">
@@ -51,6 +52,7 @@
     <string name="toast_no_permission_ext_read">動画を選択できません。\n外部ストレージへのアクセス権を許可して下さい。</string>
     <string name="toast_no_video">動画を取得できませんでした。</string>
     <string name="toast_no_permission_ext_write">外部ストレージへの書き込み権限を許可して下さい</string>
+    <string name="toast_no_motion_image">残像画像を取得できませんでした。</string>
 
     <string name="description_motion">残像画像を作成します。\n使用するフレーム数を設定して下さい。</string>
     <string name="button_generate_motion_image">画像作成開始</string>

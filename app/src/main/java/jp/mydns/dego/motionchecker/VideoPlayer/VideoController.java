@@ -576,6 +576,7 @@ public class VideoController {
                 }
 
                 this.motionGenerator.clear();
+                this.motionGenerator.showMotionImage();
             } else {
                 // モーション画像の先頭のフレームに移動
                 int progress = this.motionGenerator.getStartTime();

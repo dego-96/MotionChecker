@@ -4,11 +4,14 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.text.format.DateFormat;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Date;
@@ -23,6 +26,7 @@ public class BitmapHelper {
     private static final String TAG = "BitmapHelper";
     //    private static final String IMAGE_FILENAME = "capture.png";
     private static final String IMAGE_EXTERNAL_FILENAME = "MotionImage_DATE.png";
+    private static File lastSavedFile = null;
 
     // ---------------------------------------------------------------------------------------------
     // public method
@@ -85,7 +89,26 @@ public class BitmapHelper {
         DebugLog.v(TAG, "absolute path: " + bitmapFile.getAbsolutePath());
         contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
 
+        lastSavedFile = bitmapFile;
+
         return true;
+    }
+
+    /**
+     * loadBitmapFromExternal
+     *
+     * @param filename filename
+     * @return bitmap
+     */
+    public static Bitmap loadBitmapFromExternal(String filename) {
+        DebugLog.d(TAG, "loadBitmapFromExternal");
+        try {
+            File file = BitmapHelper.getExternalFile(filename);
+            return BitmapFactory.decodeStream(new FileInputStream(file));
+        } catch (FileNotFoundException exception) {
+            exception.printStackTrace();
+        }
+        return null;
     }
 
 //    /**
@@ -116,6 +139,10 @@ public class BitmapHelper {
     public static Bitmap createBitmapFromPixels(int[] pixels, int width, int height) {
         DebugLog.d(TAG, "createBitmapFromPixels");
         return Bitmap.createBitmap(pixels, width, height, Bitmap.Config.ARGB_8888);
+    }
+
+    public static File getLastSavedFile() {
+        return lastSavedFile;
     }
 
     // ---------------------------------------------------------------------------------------------

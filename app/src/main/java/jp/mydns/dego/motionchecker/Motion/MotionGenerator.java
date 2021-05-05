@@ -1,11 +1,14 @@
 package jp.mydns.dego.motionchecker.Motion;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+
+import java.io.File;
 
 import jp.mydns.dego.motionchecker.R;
 import jp.mydns.dego.motionchecker.Util.BitmapHelper;
@@ -23,6 +26,7 @@ public class MotionGenerator {
     private static final int FRAME_NUM_MAX = 60;
 
     public static final int FRAME_NUM_OFFSET = 5;
+    public static final String INTENT_LAST_SAVED_IMAGE = "LastMotionImage";
 
     public enum Step {
         NONE,
@@ -251,6 +255,20 @@ public class MotionGenerator {
     public Bitmap createBitmap(int width, int height) {
         DebugLog.d(TAG, "createBitmap");
         return BitmapHelper.createBitmapFromPixels(this.resultPixels, width, height);
+    }
+
+    /**
+     * showMotionImage
+     */
+    public void showMotionImage() {
+        DebugLog.d(TAG, "showMotionImage");
+
+        Intent intent = new Intent(this.activity, ImageViewerActivity.class);
+        File file = BitmapHelper.getLastSavedFile();
+        DebugLog.v(TAG, "filename: " + file.getName());
+        intent.putExtra(INTENT_LAST_SAVED_IMAGE, file.getName());
+
+        this.activity.startActivity(intent);
     }
 
     // ---------------------------------------------------------------------------------------------

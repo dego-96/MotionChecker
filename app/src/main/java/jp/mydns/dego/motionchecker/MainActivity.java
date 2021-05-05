@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import jp.mydns.dego.motionchecker.Drawer.DrawItemBase;
 import jp.mydns.dego.motionchecker.Drawer.DrawingManager;
+import jp.mydns.dego.motionchecker.Util.ActivityHelper;
 import jp.mydns.dego.motionchecker.Util.DebugLog;
 import jp.mydns.dego.motionchecker.Util.PermissionManager;
 import jp.mydns.dego.motionchecker.VideoPlayer.VideoController;
@@ -56,7 +57,6 @@ public class MainActivity extends AppCompatActivity {
 
         this.getVideoController().setViews(this);
         this.getDrawingManager().setViews(this);
-        this.setMode(Mode.Video);
     }
 
     /**
@@ -66,7 +66,8 @@ public class MainActivity extends AppCompatActivity {
     public void onStart() {
         DebugLog.d(TAG, "onStart");
         super.onStart();
-        this.hideSystemUI();
+        ActivityHelper.hideSystemUI(this);
+        this.setMode(Mode.Video);
     }
 
     /**
@@ -264,18 +265,6 @@ public class MainActivity extends AppCompatActivity {
      */
     private DrawingManager getDrawingManager() {
         return InstanceHolder.getInstance().getDrawingManager();
-    }
-
-    /**
-     * hideSystemUI
-     */
-    private void hideSystemUI() {
-        DebugLog.d(TAG, "hideSystemUI");
-        View decor = this.getWindow().getDecorView();
-        decor.setSystemUiVisibility(
-            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
-                View.SYSTEM_UI_FLAG_FULLSCREEN |
-                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
     }
 
     /**
