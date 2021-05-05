@@ -60,6 +60,9 @@ public class DrawingManager {
     public void setViews(Activity activity) {
         DebugLog.d(TAG, "setViews");
         this.viewController.setViews(activity);
+
+        this.viewController.changeDrawTypeImageResource(this.drawType);
+        this.viewController.changeColorImageResource(this.colorType);
     }
 
     /**
@@ -80,6 +83,8 @@ public class DrawingManager {
     public void setDrawType(DrawItemBase.DrawType type) {
         DebugLog.d(TAG, "setDrawType");
         this.drawType = type;
+
+        this.viewController.changeDrawTypeImageResource(type);
     }
 
     /**
@@ -100,6 +105,8 @@ public class DrawingManager {
     public void setColor(DrawItemBase.ColorType type) {
         DebugLog.d(TAG, "setColor");
         this.colorType = type;
+
+        this.viewController.changeColorImageResource(type);
     }
 
     /**
