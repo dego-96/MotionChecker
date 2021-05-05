@@ -372,6 +372,9 @@ public class DrawSurfaceView extends SurfaceView implements SurfaceHolder.Callba
      */
     private void drawItem(Canvas canvas, DrawItemBase item) {
         DebugLog.d(TAG, "drawItem");
+
+        this.paint.setColor(item.getColor());
+
         if (item instanceof PathItem) {
             this.paint.setStyle(Paint.Style.STROKE);
             canvas.drawPath(((PathItem) item).getPath(), this.paint);
