@@ -53,7 +53,9 @@
     <string name="toast_no_video">動画を取得できませんでした。</string>
     <string name="toast_no_permission_ext_write">外部ストレージへの書き込み権限を許可して下さい</string>
     <string name="toast_no_motion_image">残像画像を取得できませんでした。</string>
+    <string name="toast_cannot_access_network">インターネットに接続できませんでした。\nネットワーク設定を確認して頂き、接続した状態でアプリを起動して下さい。</string>
 
+    <!-- Motion Generator -->
     <string name="description_motion">残像画像を作成します。\n使用するフレーム数を設定して下さい。</string>
     <string name="button_generate_motion_image">画像作成開始</string>
     <string name="text_frame_count">フレーム数：</string>

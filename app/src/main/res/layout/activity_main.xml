@@ -5,46 +5,61 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <FrameLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@android:color/background_dark">
+        android:orientation="vertical">
 
-        <!-- Background (no video icon) -->
-        <ImageView
-            android:id="@+id/image_no_video"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:layout_gravity="center"
-            android:clickable="false"
-            android:contentDescription="@string/content_description_background"
-            android:focusable="false"
-            android:src="@drawable/no_video"
-            android:visibility="visible" />
+        <com.google.android.gms.ads.AdView xmlns:ads="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/adView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            ads:adSize="BANNER"
+            ads:adUnitId="ca-app-pub-3940256099942544/6300978111" />
 
-        <jp.mydns.dego.motionchecker.View.VideoSurfaceView
-            android:id="@+id/video_surface_view"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_gravity="center"
-            android:visibility="visible" />
+            android:background="@android:color/background_dark">
 
-        <jp.mydns.dego.motionchecker.View.DrawSurfaceView
-            android:id="@+id/draw_surface_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="center"
-            android:visibility="visible" />
+            <!-- Background (no video icon) -->
+            <ImageView
+                android:id="@+id/image_no_video"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_gravity="center"
+                android:clickable="false"
+                android:contentDescription="@string/content_description_background"
+                android:focusable="false"
+                android:src="@drawable/no_video"
+                android:visibility="visible" />
 
-        <!-- Video Controller Layout -->
-        <include layout="@layout/video_controller" />
+            <jp.mydns.dego.motionchecker.View.VideoSurfaceView
+                android:id="@+id/video_surface_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:visibility="visible" />
 
-        <!-- Video Paint Layout -->
-        <include layout="@layout/video_paint" />
+            <jp.mydns.dego.motionchecker.View.DrawSurfaceView
+                android:id="@+id/draw_surface_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:visibility="visible" />
 
-        <!-- Motion Image Generator -->
-        <include layout="@layout/motion_generator" />
+            <!-- Video Controller Layout -->
+            <include layout="@layout/video_controller" />
 
-    </FrameLayout>
+            <!-- Video Paint Layout -->
+            <include layout="@layout/video_paint" />
+
+            <!-- Motion Image Generator -->
+            <include layout="@layout/motion_generator" />
+
+        </FrameLayout>
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -51,6 +51,9 @@ public class PermissionManager {
             case Manifest.permission.INTERNET:
                 return (PackageManager.PERMISSION_GRANTED ==
                     ContextCompat.checkSelfPermission(context, Manifest.permission.INTERNET));
+            case Manifest.permission.ACCESS_NETWORK_STATE:
+                return (PackageManager.PERMISSION_GRANTED ==
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_NETWORK_STATE));
             default:
                 return false;
         }

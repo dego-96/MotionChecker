@@ -12,10 +12,17 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.initialization.InitializationStatus;
+import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
+
 import jp.mydns.dego.motionchecker.Drawer.DrawItemBase;
 import jp.mydns.dego.motionchecker.Drawer.DrawingManager;
 import jp.mydns.dego.motionchecker.Util.ActivityHelper;
 import jp.mydns.dego.motionchecker.Util.DebugLog;
+import jp.mydns.dego.motionchecker.Util.NetworkHelper;
 import jp.mydns.dego.motionchecker.Util.PermissionManager;
 import jp.mydns.dego.motionchecker.VideoPlayer.VideoController;
 
@@ -27,8 +34,9 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
     public static final int REQUEST_PERMISSION_READ_EXTERNAL_STORAGE = 10;
-    public static final int REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE = 30;
-    public static final int REQUEST_GALLERY = 20;
+    public static final int REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE = 20;
+    public static final int REQUEST_PERMISSION_INTERNET = 30;
+    public static final int REQUEST_GALLERY = 40;
 
     private enum Mode {
         Video,
@@ -68,6 +76,8 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
         ActivityHelper.hideSystemUI(this);
         this.setMode(Mode.Video);
+
+        this.initAdMobBanner();
     }
 
     /**
@@ -351,12 +361,46 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
 
-        if (permission.equals(Manifest.permission.READ_EXTERNAL_STORAGE)) {
-            manager.requestPermission(this, permission, REQUEST_PERMISSION_READ_EXTERNAL_STORAGE);
-        } else if (permission.equals(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-            manager.requestPermission(this, permission, REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE);
+        switch (permission) {
+            case Manifest.permission.READ_EXTERNAL_STORAGE:
+                manager.requestPermission(this, permission, REQUEST_PERMISSION_READ_EXTERNAL_STORAGE);
+                break;
+            case Manifest.permission.WRITE_EXTERNAL_STORAGE:
+                manager.requestPermission(this, permission, REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE);
+                break;
+            case Manifest.permission.INTERNET:
+                manager.requestPermission(this, permission, REQUEST_PERMISSION_INTERNET);
+                break;
+            default:
+                DebugLog.e(TAG, "invalid permission");
+                break;
         }
         return false;
+    }
 
+    /**
+     * initAdMobBanner
+     */
+    private void initAdMobBanner() {
+        DebugLog.d(TAG, "initAdMobBanner");
+
+        if (this.checkPermission(Manifest.permission.INTERNET) && NetworkHelper.netWorkCheck()) {
+            MobileAds.initialize(this, new OnInitializationCompleteListener() {
+                @Override
+                public void onInitializationComplete(@NonNull InitializationStatus initializationStatus) {
+                    DebugLog.d(TAG, "onInitializationComplete");
+
+                    DebugLog.v(TAG, "initializationStatus: " + initializationStatus);
+                }
+            });
+
+            AdView mAdView = findViewById(R.id.adView);
+            AdRequest adRequest = new AdRequest.Builder().build();
+            mAdView.loadAd(adRequest);
+        } else {
+            DebugLog.e(TAG, "Can not access network.");
+            Toast.makeText(this, this.getString(R.string.toast_cannot_access_network), Toast.LENGTH_LONG).show();
+            this.finish();
+        }
     }
 }
