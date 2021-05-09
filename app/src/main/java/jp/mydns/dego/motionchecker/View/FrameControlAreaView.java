@@ -6,12 +6,13 @@ import android.view.MotionEvent;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.AppCompatImageView;
 
 import jp.mydns.dego.motionchecker.InstanceHolder;
 import jp.mydns.dego.motionchecker.Util.DebugLog;
 import jp.mydns.dego.motionchecker.VideoPlayer.VideoController;
 
-public class FrameControlAreaView extends androidx.appcompat.widget.AppCompatImageView {
+public class FrameControlAreaView extends AppCompatImageView {
 
     // ---------------------------------------------------------------------------------------------
     // constant values

@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,6 +12,7 @@ import jp.mydns.dego.motionchecker.R;
 import jp.mydns.dego.motionchecker.Util.ActivityHelper;
 import jp.mydns.dego.motionchecker.Util.BitmapHelper;
 import jp.mydns.dego.motionchecker.Util.DebugLog;
+import jp.mydns.dego.motionchecker.View.MotionResultImageView;
 
 public class ImageViewerActivity extends AppCompatActivity {
 
@@ -125,10 +125,12 @@ public class ImageViewerActivity extends AppCompatActivity {
             this.finish();
         }
 
+        assert intent != null;
         String filename = intent.getStringExtra(MotionGenerator.INTENT_LAST_SAVED_IMAGE);
         DebugLog.v(TAG, "filename: " + filename);
         Bitmap bitmap = BitmapHelper.loadBitmapFromExternal(filename);
-        ImageView imageView = this.findViewById(R.id.image_motion_result);
+        MotionResultImageView imageView = this.findViewById(R.id.image_motion_result);
+        imageView.bindDisplay(this.getWindowManager().getDefaultDisplay());
         imageView.setImageBitmap(bitmap);
     }
 }

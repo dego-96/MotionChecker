@@ -47,7 +47,9 @@
                 <data android:mimeType="video/*" />
             </intent-filter>
         </activity>
-        <activity android:name=".Motion.ImageViewerActivity" />
+        <activity
+            android:name=".Motion.ImageViewerActivity"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>
