@@ -12,6 +12,46 @@ public class PixelHelper {
     // ---------------------------------------------------------------------------------------------
 
     /**
+     * getR
+     *
+     * @param pixel pixel data
+     * @return red element in pixel data
+     */
+    public static int getR(int pixel) {
+        return (pixel & 0x00FF0000) >> 16;
+    }
+
+    /**
+     * getG
+     *
+     * @param pixel pixel data
+     * @return green element in pixel data
+     */
+    public static int getG(int pixel) {
+        return (pixel & 0x0000FF00) >> 8;
+    }
+
+    /**
+     * getB
+     *
+     * @param pixel pixel data
+     * @return blue element in pixel data
+     */
+    public static int getB(int pixel) {
+        return (pixel & 0x000000FF);
+    }
+
+//    /**
+//     * getA
+//     *
+//     * @param pixel pixel data
+//     * @return alpha element in pixel data
+//     */
+//    public static int getA(int pixel) {
+//        return (pixel & 0xFF000000) >> 24;
+//    }
+
+    /**
      * average
      *
      * @param pixel1 pixel data 1
@@ -19,17 +59,9 @@ public class PixelHelper {
      * @return average pixel
      */
     public static int average(int pixel1, int pixel2) {
-        int r1 = (pixel1 & 0x00FF0000) >> 16;
-        int g1 = (pixel1 & 0x0000FF00) >> 8;
-        int b1 = (pixel1 & 0x000000FF);
-
-        int r2 = (pixel2 & 0x00FF0000) >> 16;
-        int g2 = (pixel2 & 0x0000FF00) >> 8;
-        int b2 = (pixel2 & 0x000000FF);
-
-        int r = (r1 + r2) / 2;
-        int g = (g1 + g2) / 2;
-        int b = (b1 + b2) / 2;
+        int r = (PixelHelper.getR(pixel1) + PixelHelper.getR(pixel2)) / 2;
+        int g = (PixelHelper.getG(pixel1) + PixelHelper.getG(pixel2)) / 2;
+        int b = (PixelHelper.getB(pixel1) + PixelHelper.getB(pixel2)) / 2;
 
         return (0xFF000000) | ((int) r << 16) | ((int) g << 8) | ((int) b);
     }

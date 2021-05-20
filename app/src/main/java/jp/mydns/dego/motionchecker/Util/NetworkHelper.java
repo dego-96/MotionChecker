@@ -26,12 +26,12 @@ public class NetworkHelper {
     // ---------------------------------------------------------------------------------------------
 
     /**
-     * netWorkCheck
+     * networkCheck
      *
      * @return can access network
      */
-    public static boolean netWorkCheck() {
-        DebugLog.d(TAG, "netWorkCheck");
+    public static boolean networkCheck() {
+        DebugLog.d(TAG, "networkCheck");
 
         Context context = InstanceHolder.getInstance().getApplicationContext();
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);

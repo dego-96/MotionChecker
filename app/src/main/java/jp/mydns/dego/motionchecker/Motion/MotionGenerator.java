@@ -28,10 +28,14 @@ public class MotionGenerator {
     public static final int FRAME_NUM_OFFSET = 5;
     public static final String INTENT_LAST_SAVED_IMAGE = "LastMotionImage";
 
+    private static final int COLOR_VARIANCE_THRESHOLD_SQ = 100 * 100;
+    private static final int COLOR_DISTANCE_THRESHOLD_SQ = 20 * 20;
+
     public enum Step {
         NONE,
         AVERAGE,
-        DISTANCE,
+        VARIANCE,
+        BACKGROUND,
         SUPERPOSE,
         END,
     }
@@ -41,13 +45,18 @@ public class MotionGenerator {
     // ---------------------------------------------------------------------------------------------
     private Activity activity;
     private int count;
-    private int[] averagePixels;
-    private int[] distanceMax;
-    private int[] distant;
+    private int[] average;
+    private long[] variance;
+    private int[] background;
+    private int[] sumR;
+    private int[] sumG;
+    private int[] sumB;
     private int[] resultPixels;
     private Step step;
     private int startTime;
     private int frameNum;
+
+//    private int[][] frontPixels;
 
     // ---------------------------------------------------------------------------------------------
     // constructor
@@ -109,9 +118,8 @@ public class MotionGenerator {
     public void start(int time_ms) {
         DebugLog.d(TAG, "start (" + time_ms + ")");
         this.count = 0;
-        this.averagePixels = null;
-        this.distanceMax = null;
-        this.distant = null;
+        this.average = null;
+        this.variance = null;
         this.resultPixels = null;
         this.step = Step.AVERAGE;
         this.startTime = time_ms;
@@ -141,8 +149,13 @@ public class MotionGenerator {
      */
     public boolean needNextFrame() {
         return (
-            (this.step == Step.AVERAGE || this.step == Step.DISTANCE || this.step == Step.SUPERPOSE) &&
-                this.count < this.frameNum);
+            (this.step == Step.AVERAGE
+                || this.step == Step.VARIANCE
+                || this.step == Step.BACKGROUND
+                || this.step == Step.SUPERPOSE
+            )
+                && this.count < this.frameNum
+        );
     }
 
     /**
@@ -154,9 +167,12 @@ public class MotionGenerator {
         DebugLog.d(TAG, "nextStep (count:" + this.count + ", step:" + this.step + ")");
         if (this.count == this.frameNum) {
             if (this.step == Step.AVERAGE) {
-                this.step = Step.DISTANCE;
+                this.step = Step.VARIANCE;
                 this.count = 0;
-            } else if (this.step == Step.DISTANCE) {
+            } else if (this.step == Step.VARIANCE) {
+                this.step = Step.BACKGROUND;
+                this.count = 0;
+            } else if (this.step == Step.BACKGROUND) {
                 this.step = Step.SUPERPOSE;
                 this.count = 0;
             } else if (this.step == Step.SUPERPOSE) {
@@ -214,31 +230,62 @@ public class MotionGenerator {
         int[] pixels = new int[length];
         captureImage.getPixels(pixels, 0, width, 0, 0, width, height);
 
-        if (this.step == Step.AVERAGE) {
-            if (this.averagePixels == null) {
+        if (this.step == Step.AVERAGE) {    // 平均を計算
+            if (this.average == null) {
                 this.initArrays(length);
             }
 
             for (int index = 0; index < length; index++) {
-                this.averagePixels[index] = PixelHelper.average(
-                    this.averagePixels[index],
+                this.average[index] = PixelHelper.average(
+                    this.average[index],
                     pixels[index],
                     this.count
                 );
             }
-        } else if (this.step == Step.DISTANCE) {
+        } else if (this.step == Step.VARIANCE) {   // 分散を計算
             for (int index = 0; index < length; index++) {
-                int distance = PixelHelper.distanceSq(this.averagePixels[index], pixels[index]);
-                if (this.distanceMax[index] < distance) {
-                    this.distanceMax[index] = distance;
-                    this.distant[index] = this.count;
+                this.variance[index] += PixelHelper.distanceSq(this.average[index], pixels[index]);
+            }
+            if (this.count == this.frameNum - 1) {
+                for (int index = 0; index < length; index++) {
+                    this.variance[index] = this.variance[index] / this.frameNum;
                 }
+            }
+        } else if (this.step == Step.BACKGROUND) {  // 背景画像
+            for (int index = 0; index < length; index++) {
+                int distanceSq = PixelHelper.distanceSq(this.average[index], pixels[index]);
+                if (distanceSq < this.variance[index]) {
+                    this.sumR[index] += PixelHelper.getR(pixels[index]);
+                    this.sumG[index] += PixelHelper.getG(pixels[index]);
+                    this.sumB[index] += PixelHelper.getB(pixels[index]);
+                    this.background[index]++;
+                }
+            }
+            if (this.count == this.frameNum - 1) {
+                for (int index = 0; index < length; index++) {
+                    if (this.background[index] > 0) {
+                        int r = this.sumR[index] / this.background[index];
+                        int g = this.sumG[index] / this.background[index];
+                        int b = this.sumB[index] / this.background[index];
+                        this.background[index] = (0xFF000000) | (r << 16) | (g << 8) | (b);
+                    } else {
+                        this.background[index] = pixels[index];
+                    }
+                }
+                System.arraycopy(this.background, 0, this.resultPixels, 0, this.resultPixels.length);
             }
         } else if (this.step == Step.SUPERPOSE) {
             for (int index = 0; index < length; index++) {
-                if (this.count == this.distant[index]) {
-                    int pixel = PixelHelper.average(this.averagePixels[index], pixels[index]);
-                    this.resultPixels[index] = pixel;
+                if (this.variance[index] < COLOR_VARIANCE_THRESHOLD_SQ) {
+                    // ばらつきが少ないところは背景or前景
+                    int distanceSq = PixelHelper.distanceSq(this.background[index], pixels[index]);
+                    if (distanceSq > COLOR_DISTANCE_THRESHOLD_SQ) {
+//                        this.resultPixels[index] = 0xFFFF0000;  // 前景
+                        this.resultPixels[index] = pixels[index];
+                    }
+                } else {
+                    // ばらつきが大きいところは平均値を使用
+                    this.resultPixels[index] = this.average[index];
                 }
             }
 //        } else if (this.step == Step.END) {
@@ -281,9 +328,8 @@ public class MotionGenerator {
     private void init() {
         DebugLog.d(TAG, "init (private)");
         this.count = 0;
-        this.averagePixels = null;
-        this.distanceMax = null;
-        this.distant = null;
+        this.average = null;
+        this.variance = null;
         this.resultPixels = null;
         this.step = Step.NONE;
         this.startTime = -1;
@@ -298,15 +344,21 @@ public class MotionGenerator {
     private void initArrays(int length) {
         DebugLog.d(TAG, "initArrays");
 
-        this.averagePixels = new int[length];
-        this.distanceMax = new int[length];
-        this.distant = new int[length];
+        this.average = new int[length];
+        this.variance = new long[length];
+        this.background = new int[length];
+        this.sumR = new int[length];
+        this.sumG = new int[length];
+        this.sumB = new int[length];
         this.resultPixels = new int[length];
 
         for (int index = 0; index < length; index++) {
-            this.averagePixels[index] = 0x00000000;
-            this.distanceMax[index] = 0x00000000;
-            this.distant[index] = 0x00000000;
+            this.average[index] = 0x00000000;
+            this.variance[index] = 0;
+            this.background[index] = 0;
+            this.sumR[index] = 0;
+            this.sumG[index] = 0;
+            this.sumB[index] = 0;
             this.resultPixels[index] = 0x00000000;
         }
     }

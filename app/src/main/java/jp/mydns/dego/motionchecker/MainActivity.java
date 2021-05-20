@@ -384,7 +384,7 @@ public class MainActivity extends AppCompatActivity {
     private void initAdMobBanner() {
         DebugLog.d(TAG, "initAdMobBanner");
 
-        if (this.checkPermission(Manifest.permission.INTERNET) && NetworkHelper.netWorkCheck()) {
+        if (this.checkPermission(Manifest.permission.INTERNET) && NetworkHelper.networkCheck()) {
             MobileAds.initialize(this, new OnInitializationCompleteListener() {
                 @Override
                 public void onInitializationComplete(@NonNull InitializationStatus initializationStatus) {
