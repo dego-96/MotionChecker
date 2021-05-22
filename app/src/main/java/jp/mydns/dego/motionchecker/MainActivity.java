@@ -183,6 +183,8 @@ public class MainActivity extends AppCompatActivity {
     public void onButtonClicked(View button) {
         DebugLog.d(TAG, "onButtonClicked");
 
+        this.networkCheck();
+
         int id = button.getId();
         if (id == R.id.button_gallery) {
             this.videoSelect();
@@ -384,7 +386,7 @@ public class MainActivity extends AppCompatActivity {
     private void initAdMobBanner() {
         DebugLog.d(TAG, "initAdMobBanner");
 
-        if (this.checkPermission(Manifest.permission.INTERNET) && NetworkHelper.networkCheck()) {
+        if (this.networkCheck()) {
             MobileAds.initialize(this, new OnInitializationCompleteListener() {
                 @Override
                 public void onInitializationComplete(@NonNull InitializationStatus initializationStatus) {
@@ -398,9 +400,26 @@ public class MainActivity extends AppCompatActivity {
             AdRequest adRequest = new AdRequest.Builder().build();
             mAdView.loadAd(adRequest);
         } else {
-            DebugLog.e(TAG, "Can not access network.");
             Toast.makeText(this, this.getString(R.string.toast_cannot_access_network), Toast.LENGTH_LONG).show();
-            this.finish();
+        }
+    }
+
+    /**
+     * networkCheck
+     *
+     * @return can access network
+     */
+    private boolean networkCheck() {
+        DebugLog.d(TAG, "networkCheck");
+
+        AdView adView = findViewById(R.id.adView);
+        if (this.checkPermission(Manifest.permission.INTERNET) && NetworkHelper.networkCheck()) {
+            adView.setVisibility(View.VISIBLE);
+            return true;
+        } else {
+            DebugLog.w(TAG, "Can not access network.");
+            adView.setVisibility(View.GONE);
+            return false;
         }
     }
 }
