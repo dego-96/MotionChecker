@@ -35,14 +35,14 @@
                 android:src="@drawable/no_video"
                 android:visibility="visible" />
 
-            <jp.mydns.dego.motionchecker.View.VideoSurfaceView
+            <jp.mydns.dego.zanzo.View.VideoSurfaceView
                 android:id="@+id/video_surface_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_gravity="center"
                 android:visibility="visible" />
 
-            <jp.mydns.dego.motionchecker.View.DrawSurfaceView
+            <jp.mydns.dego.zanzo.View.DrawSurfaceView
                 android:id="@+id/draw_surface_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"

@@ -11,7 +11,7 @@
         android:background="@android:color/background_dark">
 
         <!-- Motion Image -->
-        <jp.mydns.dego.motionchecker.View.MotionResultImageView
+        <jp.mydns.dego.zanzo.View.MotionResultImageView
             android:id="@+id/image_motion_result"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

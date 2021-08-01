@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">モーションチェッカー</string>
+    <string name="app_name">zanzo</string>
 
     <!-- Layout -->
     <string name="content_description_background">No Video Data</string>

@@ -195,7 +195,7 @@
                 android:visibility="invisible" />
 
             <!-- Frame Control Area -->
-            <jp.mydns.dego.motionchecker.View.FrameControlAreaView
+            <jp.mydns.dego.zanzo.View.FrameControlAreaView
                 android:id="@+id/frame_control_area"
                 android:layout_width="0dp"
                 android:layout_height="40dp"
@@ -275,7 +275,7 @@
 
         </LinearLayout>
 
-        <jp.mydns.dego.motionchecker.View.VideoProgressBar
+        <jp.mydns.dego.zanzo.View.VideoProgressBar
             android:id="@+id/seek_bar_playtime"
             android:layout_width="match_parent"
             android:layout_height="15dp"
