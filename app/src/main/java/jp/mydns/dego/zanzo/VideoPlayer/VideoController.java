@@ -52,7 +52,7 @@ public class VideoController {
         this.speedManager = new PlaySpeedManager();
         this.motionGenerator = new MotionGenerator();
 
-        this.decoder.setOnVideoChangeListener(new OnVideoChangeListener() {
+        this.decoder.setOnVideoChangeListener(new VideoChangeListener() {
             @Override
             public void onDurationChanged(int duration) {
                 DebugLog.d(TAG, "onDurationChanged");
@@ -421,6 +421,27 @@ public class VideoController {
             this.decoder.seekTo(progress - MOVE_TIME, false);
             this.threadStart();
         }
+    }
+
+    /**
+     * setLastProgress
+     *
+     * @param progress progress
+     */
+    public void setLastProgress(int progress) {
+        DebugLog.d(TAG, "setLastProgress");
+
+        VideoSurfaceView videoSurfaceView = this.viewController.getVideoSurfaceView();
+        videoSurfaceView.setLastProgress(progress);
+    }
+
+    /**
+     * getProgress
+     *
+     * @return progress
+     */
+    public int getProgress() {
+        return this.viewController.getProgress();
     }
 
     /**

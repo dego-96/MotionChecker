@@ -1,6 +1,6 @@
 package jp.mydns.dego.zanzo.VideoPlayer;
 
-public interface OnVideoChangeListener {
+public interface VideoChangeListener {
 
     void onDurationChanged(int duration);
 

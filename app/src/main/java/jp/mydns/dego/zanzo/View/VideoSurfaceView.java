@@ -15,6 +15,7 @@ import android.view.SurfaceView;
 
 import jp.mydns.dego.zanzo.InstanceHolder;
 import jp.mydns.dego.zanzo.Util.DebugLog;
+import jp.mydns.dego.zanzo.VideoPlayer.VideoController;
 
 public class VideoSurfaceView extends SurfaceView implements SurfaceHolder.Callback {
 
@@ -89,6 +90,7 @@ public class VideoSurfaceView extends SurfaceView implements SurfaceHolder.Callb
     private LayoutInfo layoutInfo;
     private ACTION_MODE mode;
     private boolean isViewLock;
+    private int lastProgress;
 
     // ---------------------------------------------------------------------------------------------
     // constructor
@@ -151,6 +153,15 @@ public class VideoSurfaceView extends SurfaceView implements SurfaceHolder.Callb
     // ---------------------------------------------------------------------------------------------
 
     /**
+     * setLastProgress
+     *
+     * @param progress progress
+     */
+    public void setLastProgress(int progress) {
+        this.lastProgress = progress;
+    }
+
+    /**
      * performClick
      *
      * @return disable next touch event
@@ -199,7 +210,12 @@ public class VideoSurfaceView extends SurfaceView implements SurfaceHolder.Callb
     public void surfaceCreated(SurfaceHolder holder) {
         DebugLog.d(TAG, "surfaceCreated");
 
-        InstanceHolder.getInstance().getVideoController().setSurface(holder.getSurface());
+        VideoController controller = InstanceHolder.getInstance().getVideoController();
+        controller.setSurface(holder.getSurface());
+
+        if (this.lastProgress > 0) {
+            controller.seekTo(this.lastProgress, true);
+        }
     }
 
     /**
@@ -289,6 +305,7 @@ public class VideoSurfaceView extends SurfaceView implements SurfaceHolder.Callb
         DebugLog.d(TAG, "init");
 
         this.isViewLock = false;
+        this.lastProgress = 0;
 
         SurfaceHolder holder = this.getHolder();
         if (holder != null) {

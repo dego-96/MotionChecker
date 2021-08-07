@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import jp.mydns.dego.zanzo.R;
@@ -38,6 +39,8 @@ public class ImageViewerActivity extends Activity {
         DebugLog.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.activity_image_viewer);
+
+        this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         this.setImage();
     }

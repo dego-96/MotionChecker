@@ -8,7 +8,9 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.SurfaceHolder;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.google.android.gms.ads.AdRequest;
@@ -32,6 +34,9 @@ public class MainActivity extends Activity {
     // ---------------------------------------------------------------------------------------------
     private static final String TAG = "MainActivity";
 
+    private static final String STATE_KEY_URI = "video_uri";
+    private static final String STATE_KEY_PROGRESS = "video_progress";
+
     public static final int REQUEST_PERMISSION_READ_EXTERNAL_STORAGE = 10;
     public static final int REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE = 20;
     public static final int REQUEST_PERMISSION_INTERNET = 30;
@@ -46,6 +51,9 @@ public class MainActivity extends Activity {
     // ---------------------------------------------------------------------------------------------
     // Private Fields
     // ---------------------------------------------------------------------------------------------
+
+    private Uri videoUri = null;
+    private int lastProgress = 0;
 
     // ---------------------------------------------------------------------------------------------
     // Activity Lifecycle
@@ -64,6 +72,14 @@ public class MainActivity extends Activity {
 
         this.getVideoController().setViews(this);
         this.getDrawingManager().setViews(this);
+
+        this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        if (savedInstanceState != null) {
+            this.videoUri = savedInstanceState.getParcelable(STATE_KEY_URI);
+            int progress = savedInstanceState.getInt(STATE_KEY_PROGRESS);
+            this.getVideoController().setLastProgress(progress);
+        }
     }
 
     /**
@@ -89,11 +105,10 @@ public class MainActivity extends Activity {
 
         Uri uri = this.getIntent().getData();
         if (uri != null) {
-            if (this.getVideoController().setVideo(uri)) {
-                DebugLog.v(TAG, "video standby");
-            } else {
-                Toast.makeText(getApplication(), getString(R.string.toast_no_video), Toast.LENGTH_SHORT).show();
-            }
+            this.videoUri = uri;
+            this.setVideo(uri);
+        } else if (this.videoUri != null) {
+            this.setVideo(this.videoUri);
         }
     }
 
@@ -122,6 +137,22 @@ public class MainActivity extends Activity {
     public void onDestroy() {
         DebugLog.d(TAG, "onDestroy");
         super.onDestroy();
+    }
+
+    /**
+     * onSaveInstanceState
+     *
+     * @param outState state
+     */
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        if (this.videoUri != null) {
+            outState.putParcelable(STATE_KEY_URI, this.videoUri);
+            int progress = this.getVideoController().getProgress();
+            outState.putInt(STATE_KEY_PROGRESS, progress);
+        }
     }
 
     /**
@@ -300,6 +331,20 @@ public class MainActivity extends Activity {
         }
 
         Uri uri = data.getData();
+        this.videoUri = uri;
+        if (this.getVideoController().setVideo(uri)) {
+            DebugLog.v(TAG, "video standby");
+        } else {
+            Toast.makeText(getApplication(), getString(R.string.toast_no_video), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * setVideo
+     *
+     * @param uri uri
+     */
+    private void setVideo(Uri uri) {
         if (this.getVideoController().setVideo(uri)) {
             DebugLog.v(TAG, "video standby");
         } else {

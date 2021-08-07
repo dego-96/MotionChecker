@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/background_dark">
+
+        <!-- Background (no video icon) -->
+        <ImageView
+            android:id="@+id/image_no_video"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="center"
+            android:clickable="false"
+            android:contentDescription="@string/content_description_background"
+            android:focusable="false"
+            android:src="@drawable/no_video"
+            android:visibility="visible" />
+
+        <jp.mydns.dego.zanzo.View.VideoSurfaceView
+            android:id="@+id/video_surface_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:visibility="visible" />
+
+        <jp.mydns.dego.zanzo.View.DrawSurfaceView
+            android:id="@+id/draw_surface_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:visibility="visible" />
+
+        <!-- Video Controller Layout -->
+        <include layout="@layout/video_controller" />
+
+        <!-- Video Paint Layout -->
+        <include layout="@layout/video_paint" />
+
+        <!-- Motion Image Generator -->
+        <include layout="@layout/motion_generator" />
+
+        <com.google.android.gms.ads.AdView xmlns:ads="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/adView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            ads:adSize="BANNER"
+            ads:adUnitId="@string/admob_unit_id" />
+
+    </FrameLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

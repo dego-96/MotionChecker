@@ -50,7 +50,7 @@ public class VideoDecoder implements Runnable {
     // ---------------------------------------------------------------------------------------------
     private DecoderStatus status;
     private FramePosition position;
-    private OnVideoChangeListener videoListener;
+    private VideoChangeListener videoListener;
 
     private Surface surface;
 
@@ -255,7 +255,7 @@ public class VideoDecoder implements Runnable {
      *
      * @param listener video change listener
      */
-    void setOnVideoChangeListener(OnVideoChangeListener listener) {
+    void setOnVideoChangeListener(VideoChangeListener listener) {
         DebugLog.d(TAG, "setOnVideoChangeListener");
         this.videoListener = listener;
     }

@@ -40,7 +40,7 @@ public class InstanceHolder extends Application {
     /**
      * getInstance
      *
-     * @return Application context
+     * @return Application Context
      */
     public static InstanceHolder getInstance() {
         return instance;
