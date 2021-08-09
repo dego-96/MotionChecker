@@ -2,6 +2,7 @@ package jp.mydns.dego.zanzo.Util;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
+import android.net.Network;
 import android.net.NetworkInfo;
 
 import jp.mydns.dego.zanzo.InstanceHolder;
@@ -35,11 +36,14 @@ public class NetworkHelper {
 
         Context context = InstanceHolder.getInstance().getApplicationContext();
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-        if (networkInfo != null) {
-            return networkInfo.isConnected();
-        } else {
-            return false;
+
+        Network[] networks = connectivityManager.getAllNetworks();
+        for (Network network : networks) {
+            NetworkInfo networkInfo = connectivityManager.getNetworkInfo(network);
+            if (networkInfo != null && networkInfo.getState().equals(NetworkInfo.State.CONNECTED)) {
+                return true;
+            }
         }
+        return false;
     }
 }

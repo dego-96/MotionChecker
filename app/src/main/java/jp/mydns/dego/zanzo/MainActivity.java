@@ -486,8 +486,6 @@ public class MainActivity extends Activity {
             AdRequest adRequest = new AdRequest.Builder().build();
             mAdView.loadAd(adRequest);
             InterstitialAd.load(this, this.getString(R.string.admob_unit_id_interstitial), adRequest, this.interstitialAdLoadCallback);
-        } else {
-            Toast.makeText(this, this.getString(R.string.toast_cannot_access_network), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -516,6 +514,7 @@ public class MainActivity extends Activity {
         } else {
             DebugLog.w(TAG, "Can not access network.");
             adView.setVisibility(View.GONE);
+            Toast.makeText(this, this.getString(R.string.toast_cannot_access_network), Toast.LENGTH_LONG).show();
             return false;
         }
     }
