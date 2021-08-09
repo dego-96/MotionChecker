@@ -3,6 +3,7 @@ package jp.mydns.dego.zanzo.Motion;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
@@ -133,7 +134,11 @@ public class ImageViewerActivity extends Activity {
         DebugLog.v(TAG, "filename: " + filename);
         Bitmap bitmap = BitmapHelper.loadBitmapFromExternal(filename);
         MotionResultImageView imageView = this.findViewById(R.id.image_motion_result);
-        imageView.bindDisplay(this.getWindowManager().getDefaultDisplay());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            imageView.bindDisplay(this.getDisplay());
+        } else {
+            imageView.bindDisplay(this.getWindowManager().getDefaultDisplay());
+        }
         imageView.setImageBitmap(bitmap);
     }
 }

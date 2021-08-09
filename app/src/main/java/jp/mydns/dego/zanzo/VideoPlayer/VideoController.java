@@ -3,7 +3,9 @@ package jp.mydns.dego.zanzo.VideoPlayer;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Handler;
+import android.os.Looper;
 import android.view.PixelCopy;
 import android.view.Surface;
 import android.widget.SeekBar;
@@ -113,7 +115,11 @@ public class VideoController {
         DebugLog.d(TAG, "setViews");
 
         this.viewController.setViews(activity);
-        this.viewController.bindDisplay(activity.getWindowManager().getDefaultDisplay());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            this.viewController.bindDisplay(activity.getDisplay());
+        } else {
+            this.viewController.bindDisplay(activity.getWindowManager().getDefaultDisplay());
+        }
         if (!this.isVideoStandby()) {
             this.setVisibilities(VideoDecoder.DecoderStatus.INIT);
         }
@@ -553,7 +559,7 @@ public class VideoController {
             videoSurfaceView,
             this.videoCapture,
             this.pixelCopyFinishedListener,
-            new Handler()
+            new Handler(Looper.getMainLooper())
         );
     }
 
