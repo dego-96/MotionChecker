@@ -107,6 +107,9 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         DebugLog.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
+
+        NetworkHelper.registerNetworkCallback();
+
         this.setContentView(R.layout.activity_main);
 
         this.getVideoController().setViews(this);
@@ -176,6 +179,8 @@ public class MainActivity extends Activity {
     public void onDestroy() {
         DebugLog.d(TAG, "onDestroy");
         super.onDestroy();
+
+        NetworkHelper.unregisterNetworkCallback();
     }
 
     /**
