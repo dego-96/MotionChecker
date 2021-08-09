@@ -10,13 +10,14 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
+        <!-- Banner -->
         <com.google.android.gms.ads.AdView xmlns:ads="http://schemas.android.com/apk/res-auto"
             android:id="@+id/adView"
             android:layout_width="wrap_content"
             android:layout_height="50dp"
             android:layout_gravity="center_horizontal"
             ads:adSize="BANNER"
-            ads:adUnitId="@string/admob_unit_id" />
+            ads:adUnitId="@string/admob_unit_id_banner" />
 
         <FrameLayout
             android:layout_width="match_parent"

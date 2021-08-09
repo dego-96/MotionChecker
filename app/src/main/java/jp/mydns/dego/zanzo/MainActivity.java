@@ -8,16 +8,20 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import com.google.android.gms.ads.AdError;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.FullScreenContentCallback;
+import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.initialization.InitializationStatus;
 import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
+import com.google.android.gms.ads.interstitial.InterstitialAd;
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 
 import jp.mydns.dego.zanzo.Drawer.DrawItemBase;
 import jp.mydns.dego.zanzo.Drawer.DrawingManager;
@@ -41,6 +45,7 @@ public class MainActivity extends Activity {
     public static final int REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE = 20;
     public static final int REQUEST_PERMISSION_INTERNET = 30;
     public static final int REQUEST_GALLERY = 40;
+    public static final int REQUEST_MOTION = 50;
 
     private enum Mode {
         Video,
@@ -53,7 +58,41 @@ public class MainActivity extends Activity {
     // ---------------------------------------------------------------------------------------------
 
     private Uri videoUri = null;
-    private int lastProgress = 0;
+    private InterstitialAd interstitialAd;
+    private final InterstitialAdLoadCallback interstitialAdLoadCallback = new InterstitialAdLoadCallback() {
+        @Override
+        public void onAdLoaded(@NonNull InterstitialAd loadedInterstitialAd) {
+            DebugLog.d(TAG, "onAdLoaded");
+            super.onAdLoaded(loadedInterstitialAd);
+            interstitialAd = loadedInterstitialAd;
+
+            interstitialAd.setFullScreenContentCallback(new FullScreenContentCallback() {
+                @Override
+                public void onAdDismissedFullScreenContent() {
+                    DebugLog.d("TAG", "onAdDismissedFullScreenContent");
+                }
+
+                @Override
+                public void onAdFailedToShowFullScreenContent(@NonNull AdError adError) {
+                    DebugLog.d("TAG", "onAdFailedToShowFullScreenContent");
+                    DebugLog.i(TAG, adError.getMessage());
+                }
+
+                @Override
+                public void onAdShowedFullScreenContent() {
+                    DebugLog.d("TAG", "onAdShowedFullScreenContent");
+                    interstitialAd = null;
+                }
+            });
+        }
+
+        @Override
+        public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
+            DebugLog.d(TAG, "onAdFailedToLoad");
+            DebugLog.i(TAG, loadAdError.getMessage());
+            interstitialAd = null;
+        }
+    };
 
     // ---------------------------------------------------------------------------------------------
     // Activity Lifecycle
@@ -80,6 +119,8 @@ public class MainActivity extends Activity {
             int progress = savedInstanceState.getInt(STATE_KEY_PROGRESS);
             this.getVideoController().setLastProgress(progress);
         }
+
+        this.initAdMob();
     }
 
     /**
@@ -91,8 +132,6 @@ public class MainActivity extends Activity {
         super.onStart();
         ActivityHelper.hideSystemUI(this);
         this.setMode(Mode.Video);
-
-        this.initAdMobBanner();
     }
 
     /**
@@ -168,7 +207,9 @@ public class MainActivity extends Activity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == REQUEST_GALLERY) {
-            requestGalleryResult(resultCode, data);
+            this.requestGalleryResult(resultCode, data);
+        } else if (requestCode == REQUEST_MOTION) {
+            this.showInterstitialAd();
         } else {
             DebugLog.w(TAG, "unknown request code");
         }
@@ -426,10 +467,10 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * initAdMobBanner
+     * initAdMob
      */
-    private void initAdMobBanner() {
-        DebugLog.d(TAG, "initAdMobBanner");
+    private void initAdMob() {
+        DebugLog.d(TAG, "initAdMob");
 
         if (this.networkCheck()) {
             MobileAds.initialize(this, new OnInitializationCompleteListener() {
@@ -444,8 +485,19 @@ public class MainActivity extends Activity {
             AdView mAdView = findViewById(R.id.adView);
             AdRequest adRequest = new AdRequest.Builder().build();
             mAdView.loadAd(adRequest);
+            InterstitialAd.load(this, this.getString(R.string.admob_unit_id_interstitial), adRequest, this.interstitialAdLoadCallback);
         } else {
             Toast.makeText(this, this.getString(R.string.toast_cannot_access_network), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    /**
+     * showInterstitialAd
+     */
+    private void showInterstitialAd() {
+        DebugLog.d(TAG, "showInterstitialAd");
+        if (this.interstitialAd != null) {
+            this.interstitialAd.show(MainActivity.this);
         }
     }
 

@@ -586,7 +586,6 @@ public class VideoController {
         } else if (this.motionGenerator.nextStep()) {
             if (this.motionGenerator.isEnd()) {
                 // モーション画像の生成終了
-                DebugLog.v(TAG, "check");
                 int width = this.viewController.getVideoSurfaceView().getWidth();
                 int height = this.viewController.getVideoSurfaceView().getHeight();
                 Bitmap bitmap = this.motionGenerator.createBitmap(width, height);

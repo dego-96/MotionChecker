@@ -105,6 +105,7 @@ public class ImageViewerActivity extends Activity {
 
         int id = button.getId();
         if (id == R.id.button_back) {
+            this.setResult(Activity.RESULT_OK, new Intent());
             this.finish();
         }
     }

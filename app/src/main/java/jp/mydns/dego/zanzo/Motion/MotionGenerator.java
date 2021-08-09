@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 
 import java.io.File;
 
+import jp.mydns.dego.zanzo.MainActivity;
 import jp.mydns.dego.zanzo.R;
 import jp.mydns.dego.zanzo.Util.BitmapHelper;
 import jp.mydns.dego.zanzo.Util.DebugLog;
@@ -88,7 +89,7 @@ public class MotionGenerator {
         this.activity = activity;
         this.setFrameNumText(DEFAULT_FRAME_NUM);
 
-        SeekBar seekBar = (SeekBar) activity.findViewById(R.id.seek_bar_frame_count);
+        SeekBar seekBar = activity.findViewById(R.id.seek_bar_frame_count);
         seekBar.setOnSeekBarChangeListener(listener);
         seekBar.setMax(FRAME_NUM_MAX - FRAME_NUM_OFFSET);
         seekBar.setProgress(DEFAULT_FRAME_NUM - FRAME_NUM_OFFSET);
@@ -315,7 +316,7 @@ public class MotionGenerator {
         DebugLog.v(TAG, "filename: " + file.getName());
         intent.putExtra(INTENT_LAST_SAVED_IMAGE, file.getName());
 
-        this.activity.startActivity(intent);
+        this.activity.startActivityForResult(intent, MainActivity.REQUEST_MOTION);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -373,7 +374,7 @@ public class MotionGenerator {
             DebugLog.e(TAG, "activity is null.");
         }
 
-        TextView textView = (TextView) this.activity.findViewById(R.id.text_motion_frame_count);
+        TextView textView = this.activity.findViewById(R.id.text_motion_frame_count);
         String textFrameNum = this.activity.getString(R.string.text_frame_count) + frameNum;
         textView.setText(textFrameNum);
     }
