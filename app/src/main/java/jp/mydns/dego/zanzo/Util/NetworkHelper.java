@@ -24,13 +24,13 @@ public class NetworkHelper {
         @Override
         public void onAvailable(Network network) {
             DebugLog.d(TAG, "onAvailable");
-            checkConnection();
+            NetworkHelper.checkConnection();
         }
 
         @Override
         public void onLost(Network network) {
             DebugLog.d(TAG, "onLost");
-            checkConnection();
+            NetworkHelper.checkConnection();
         }
     };
 
@@ -50,7 +50,7 @@ public class NetworkHelper {
             .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             .addCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
             .build();
-        connectivityManager.registerNetworkCallback(request, defaultCallback);
+        connectivityManager.registerNetworkCallback(request, NetworkHelper.defaultCallback);
     }
 
     /**
@@ -60,7 +60,7 @@ public class NetworkHelper {
         DebugLog.d(TAG, "unregisterNetworkCallback");
 
         ConnectivityManager connectivityManager = NetworkHelper.getConnectivityManager();
-        connectivityManager.unregisterNetworkCallback(defaultCallback);
+        connectivityManager.unregisterNetworkCallback(NetworkHelper.defaultCallback);
     }
 
     /**
@@ -71,7 +71,7 @@ public class NetworkHelper {
     public static boolean networkCheck() {
         DebugLog.d(TAG, "networkCheck");
 
-        return isConnected;
+        return NetworkHelper.isConnected;
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -96,7 +96,7 @@ public class NetworkHelper {
         ConnectivityManager connectivityManager = NetworkHelper.getConnectivityManager();
         Network[] networks = connectivityManager.getAllNetworks();
         if (networks == null) {
-            isConnected = false;
+            NetworkHelper.isConnected = false;
             return;
         }
         for (Network network : networks) {
@@ -104,10 +104,10 @@ public class NetworkHelper {
             if (capabilities != null &&
                 capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
                 capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) {
-                isConnected = true;
+                NetworkHelper.isConnected = true;
                 return;
             }
         }
-        isConnected = false;
+        NetworkHelper.isConnected = false;
     }
 }

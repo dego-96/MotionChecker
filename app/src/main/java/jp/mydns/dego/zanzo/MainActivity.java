@@ -47,7 +47,7 @@ public class MainActivity extends Activity {
     public static final int REQUEST_GALLERY = 40;
     public static final int REQUEST_MOTION = 50;
 
-    private enum Mode {
+    public enum Mode {
         Video,
         Paint,
         Motion,
@@ -422,6 +422,8 @@ public class MainActivity extends Activity {
      */
     private void setMode(Mode mode) {
         DebugLog.d(TAG, "setMode");
+
+        ActivityHelper.setOrientationChangeable(this, mode);
 
         if (mode == Mode.Video) {
             this.findViewById(R.id.layout_video_controller).setVisibility(View.VISIBLE);
