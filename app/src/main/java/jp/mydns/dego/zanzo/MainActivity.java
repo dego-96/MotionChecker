@@ -405,7 +405,7 @@ public class MainActivity extends Activity {
         DebugLog.d(TAG, "videoSelect");
 
         if (this.checkPermission(Manifest.permission.READ_EXTERNAL_STORAGE)) {
-            this.getVideoController().join();
+            this.getVideoController().join(true);
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("video/*");

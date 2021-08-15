@@ -184,11 +184,13 @@ public class VideoController {
     /**
      * join
      */
-    public void join() {
+    public void join(boolean interrupt) {
         DebugLog.d(TAG, "join");
         if (this.videoThread != null && this.videoThread.isAlive()) {
             try {
-                this.videoThread.interrupt();
+                if (interrupt) {
+                    this.videoThread.interrupt();
+                }
                 this.videoThread.join();
             } catch (InterruptedException exception) {
                 exception.printStackTrace();
@@ -284,14 +286,7 @@ public class VideoController {
     public void stop() {
         DebugLog.d(TAG, "stop");
 
-        if (this.videoThread != null && this.videoThread.isAlive()) {
-            try {
-                this.videoThread.interrupt();
-                this.videoThread.join();
-            } catch (InterruptedException exception) {
-                exception.printStackTrace();
-            }
-        }
+        this.join(true);
 
         this.decoder.release();
         this.decoder.prepare(this.video, this.speedManager.getSpeed(), false);
@@ -370,13 +365,7 @@ public class VideoController {
         if (decoder.getStatus() == VideoDecoder.DecoderStatus.SEEKING) {
             return;
         }
-        if (this.videoThread != null && this.videoThread.isAlive()) {
-            try {
-                this.videoThread.join();
-            } catch (InterruptedException exception) {
-                exception.printStackTrace();
-            }
-        }
+        this.join(false);
 
         this.decoder.seekTo(progress, precisely);
         this.threadStart();
@@ -390,13 +379,7 @@ public class VideoController {
         if (decoder.getStatus() == VideoDecoder.DecoderStatus.SEEKING) {
             return;
         }
-        if (this.videoThread != null && this.videoThread.isAlive()) {
-            try {
-                this.videoThread.join();
-            } catch (InterruptedException exception) {
-                exception.printStackTrace();
-            }
-        }
+        this.join(false);
 
         int progress = this.viewController.getProgress();
         int duration = this.viewController.getDuration();
@@ -414,13 +397,7 @@ public class VideoController {
         if (decoder.getStatus() == VideoDecoder.DecoderStatus.SEEKING) {
             return;
         }
-        if (this.videoThread != null && this.videoThread.isAlive()) {
-            try {
-                this.videoThread.join();
-            } catch (InterruptedException exception) {
-                exception.printStackTrace();
-            }
-        }
+        this.join(false);
 
         int progress = this.viewController.getProgress();
         if (progress - MOVE_TIME > 0) {
@@ -488,12 +465,18 @@ public class VideoController {
     public void generateMotionImage() {
         DebugLog.d(TAG, "generateMotionImage");
 
-        if (!this.motionGenerator.isStarted()) {
+        if (this.motionGenerator.isStarted()) {
+            this.join(true);
+            int startTime = this.motionGenerator.getStartTime();
+            if (startTime > 0) {
+                this.seekTo(startTime, true);
+            }
+
+            this.motionGenerator.cancel();
+        } else {
             int progress = this.viewController.getProgress();
             this.motionGenerator.start(progress);
             this.pixelCopyRequest();
-        } else {
-            DebugLog.w(TAG, "Motion image generation is already started.");
         }
     }
 
@@ -569,6 +552,11 @@ public class VideoController {
     private void pixelCopyFinished() {
         DebugLog.d(TAG, "pixelCopyFinished");
 
+        if (this.motionGenerator.isCancelled()) {
+            DebugLog.i(TAG, "cancelled.");
+            return;
+        }
+
         if (this.videoCapture != null) {
             this.motionGenerator.superpose(this.videoCapture);
         }
@@ -576,13 +564,7 @@ public class VideoController {
         if (this.motionGenerator.needNextFrame()) {
             // 次のフレームを描画する
             this.nextFrame();
-            DebugLog.v(TAG, "join start");
-            try {
-                this.videoThread.join(1000);
-            } catch (InterruptedException exception) {
-                exception.printStackTrace();
-            }
-            DebugLog.v(TAG, "join end");
+            this.join(false);
             if ((this.videoThread != null && this.videoThread.isAlive()) ||
                 this.decoder.getStatus() != VideoDecoder.DecoderStatus.PAUSED) {
                 DebugLog.e(TAG, "motion image generate error");
@@ -608,13 +590,7 @@ public class VideoController {
                 int progress = this.motionGenerator.getStartTime();
                 this.seekTo(progress, true);
 
-                DebugLog.v(TAG, "join start");
-                try {
-                    this.videoThread.join(1000);
-                } catch (InterruptedException exception) {
-                    exception.printStackTrace();
-                }
-                DebugLog.v(TAG, "join end");
+                this.join(false);
                 if ((this.videoThread != null && this.videoThread.isAlive()) ||
                     this.decoder.getStatus() != VideoDecoder.DecoderStatus.PAUSED) {
                     DebugLog.e(TAG, "motion image generate error");

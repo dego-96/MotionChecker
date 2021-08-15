@@ -4,6 +4,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <ImageView
+        android:id="@+id/shadow_image_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@string/content_description_motion_shadow"
+        android:visibility="invisible" />
+
     <LinearLayout
         android:id="@+id/layout_option_buttons"
         android:layout_width="match_parent"
@@ -23,10 +30,35 @@
             android:src="@drawable/button_player"
             android:visibility="visible" />
 
-        <Space
-            android:layout_width="0dp"
+    </LinearLayout>
+
+    <View
+        android:id="@+id/shadow_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#88333333"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/progress_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center" />
+
+        <TextView
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1" />
+            android:gravity="center"
+            android:text="@string/progress_message"
+            android:textColor="@android:color/white"
+            android:textSize="24sp" />
 
     </LinearLayout>
 
@@ -80,7 +112,7 @@
 
             <Button
                 android:id="@+id/button_motion_generate"
-                android:layout_width="wrap_content"
+                android:layout_width="100dp"
                 android:layout_height="60dp"
                 android:layout_margin="10dp"
                 android:clickable="true"
@@ -90,6 +122,13 @@
                 android:textSize="12sp" />
 
         </LinearLayout>
+
+        <ProgressBar
+            android:id="@+id/motion_generator_progress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:progressDrawable="@drawable/horizontal_progress" />
 
     </LinearLayout>
 

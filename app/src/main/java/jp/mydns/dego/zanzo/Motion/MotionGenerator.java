@@ -3,6 +3,9 @@ package jp.mydns.dego.zanzo.Motion;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -33,12 +36,23 @@ public class MotionGenerator {
     private static final int COLOR_DISTANCE_THRESHOLD_SQ = 20 * 20;
 
     public enum Step {
-        NONE,
-        AVERAGE,
-        VARIANCE,
-        BACKGROUND,
-        SUPERPOSE,
-        END,
+        CANCEL(0),
+        AVERAGE(1),
+        VARIANCE(2),
+        BACKGROUND(3),
+        SUPERPOSE(4),
+        END(5),
+        ;
+
+        private final int id;
+
+        Step(final int id) {
+            this.id = id;
+        }
+
+        public int getInt() {
+            return this.id;
+        }
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -56,8 +70,6 @@ public class MotionGenerator {
     private Step step;
     private int startTime;
     private int frameNum;
-
-//    private int[][] frontPixels;
 
     // ---------------------------------------------------------------------------------------------
     // constructor
@@ -93,6 +105,9 @@ public class MotionGenerator {
         seekBar.setOnSeekBarChangeListener(listener);
         seekBar.setMax(FRAME_NUM_MAX - FRAME_NUM_OFFSET);
         seekBar.setProgress(DEFAULT_FRAME_NUM - FRAME_NUM_OFFSET);
+
+        ((ProgressBar) this.activity.findViewById(R.id.motion_generator_progress)).setProgress(0);
+
     }
 
     /**
@@ -124,6 +139,24 @@ public class MotionGenerator {
         this.resultPixels = null;
         this.step = Step.AVERAGE;
         this.startTime = time_ms;
+
+        // プログレスバーの最大値を設定
+        int progressMax = this.frameNum;
+        ProgressBar progressBar = this.activity.findViewById(R.id.motion_generator_progress);
+        progressBar.setProgress(0);
+        progressBar.setMax(progressMax * 4);
+
+        this.setProgressVisibility(true);
+    }
+
+    /**
+     * cancel
+     */
+    public void cancel() {
+        DebugLog.d(TAG, "cancel");
+        this.init();
+
+        this.setProgressVisibility(false);
     }
 
     /**
@@ -190,6 +223,16 @@ public class MotionGenerator {
     }
 
     /**
+     * isCancelled
+     *
+     * @return is cancelled
+     */
+    public boolean isCancelled() {
+        DebugLog.d(TAG, "isCancelled");
+        return (this.step == Step.CANCEL);
+    }
+
+    /**
      * isEnd
      *
      * @return is end
@@ -220,8 +263,9 @@ public class MotionGenerator {
             DebugLog.e(TAG, "superpose count error.");
             return;
         }
-        if (this.step == Step.NONE) {
-            DebugLog.e(TAG, "invalidate step.");
+        if (this.isCancelled()) {
+            DebugLog.i(TAG, "superpose cancelled.");
+            this.setProgressVisibility(false);
             return;
         }
 
@@ -281,7 +325,6 @@ public class MotionGenerator {
                     // ばらつきが少ないところは背景or前景
                     int distanceSq = PixelHelper.distanceSq(this.background[index], pixels[index]);
                     if (distanceSq > COLOR_DISTANCE_THRESHOLD_SQ) {
-//                        this.resultPixels[index] = 0xFFFF0000;  // 前景
                         this.resultPixels[index] = pixels[index];
                     }
                 } else {
@@ -293,6 +336,9 @@ public class MotionGenerator {
 //            // nothing to do.
         }
         this.count++;
+
+        int progress = ((this.step.getInt() - 1) * this.frameNum) + this.count;
+        this.setMotionGeneratorProgress(progress);
     }
 
     /**
@@ -317,6 +363,8 @@ public class MotionGenerator {
         intent.putExtra(INTENT_LAST_SAVED_IMAGE, file.getName());
 
         this.activity.startActivityForResult(intent, MainActivity.REQUEST_MOTION);
+
+        this.setProgressVisibility(false);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -332,7 +380,7 @@ public class MotionGenerator {
         this.average = null;
         this.variance = null;
         this.resultPixels = null;
-        this.step = Step.NONE;
+        this.step = Step.CANCEL;
         this.startTime = -1;
         this.frameNum = DEFAULT_FRAME_NUM;
     }
@@ -372,10 +420,46 @@ public class MotionGenerator {
 
         if (this.activity == null) {
             DebugLog.e(TAG, "activity is null.");
+            return;
         }
 
         TextView textView = this.activity.findViewById(R.id.text_motion_frame_count);
         String textFrameNum = this.activity.getString(R.string.text_frame_count) + frameNum;
         textView.setText(textFrameNum);
+    }
+
+    /**
+     * setProgressVisibility
+     *
+     * @param isShow is show progress bar
+     */
+    private void setProgressVisibility(boolean isShow) {
+        if (isShow) {
+            this.activity.findViewById(R.id.progress_layout).setVisibility(View.VISIBLE);
+            this.activity.findViewById(R.id.shadow_view).setVisibility(View.VISIBLE);
+
+            // キャンセルボタンに変更
+            ((Button) this.activity.findViewById(R.id.button_motion_generate)).setText(R.string.button_generate_cancel);
+        } else {
+            this.activity.findViewById(R.id.progress_layout).setVisibility(View.GONE);
+            this.activity.findViewById(R.id.shadow_view).setVisibility(View.GONE);
+
+            // 画像作成開始ボタンに変更
+            ((Button) this.activity.findViewById(R.id.button_motion_generate)).setText(R.string.button_generate_motion_image);
+
+            // 表示しない場合は進捗も0にする
+            this.setMotionGeneratorProgress(0);
+        }
+    }
+
+    /**
+     * setMotionGeneratorProgress
+     *
+     * @param progress progress
+     */
+    private void setMotionGeneratorProgress(int progress) {
+        DebugLog.d(TAG, "setMotionGeneratorProgress(" + progress + ")");
+        ProgressBar progressBar = this.activity.findViewById(R.id.motion_generator_progress);
+        progressBar.setProgress(progress);
     }
 }

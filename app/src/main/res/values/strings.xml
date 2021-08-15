@@ -21,6 +21,7 @@
     <string name="content_description_back">Back</string>
     <string name="content_description_motion_image">Generate Motion Image</string>
     <string name="content_description_motion_result">Motion Image</string>
+    <string name="content_description_motion_shadow">Shadow Image</string>
     <string name="current_time_init">00:00:000</string>
     <string name="remain_time_init">--:--:---</string>
     <string-array name="play_speed_text">
@@ -58,6 +59,8 @@
     <!-- Motion Generator -->
     <string name="description_motion">残像画像を作成します。\n使用するフレーム数を設定して下さい。</string>
     <string name="button_generate_motion_image">画像作成開始</string>
+    <string name="button_generate_cancel">キャンセル</string>
     <string name="text_frame_count">フレーム数：</string>
+    <string name="progress_message">少々お待ちください。</string>
 
 </resources>
