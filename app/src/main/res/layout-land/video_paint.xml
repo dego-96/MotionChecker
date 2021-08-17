@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layout_video_paint"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:visibility="gone">
+
+    <!-- Video Player Button -->
+    <ImageView
+        android:id="@+id/button_player"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_gravity="top|start"
+        android:layout_margin="10dp"
+        android:clickable="true"
+        android:contentDescription="@string/content_description_gallery"
+        android:focusable="true"
+        android:onClick="onButtonClicked"
+        android:src="@drawable/button_player"
+        android:visibility="visible" />
+
+    <!-- redo/undo -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:orientation="horizontal"
+        android:visibility="visible">
+
+        <!-- undo -->
+        <ImageView
+            android:id="@+id/button_paint_undo"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_margin="10dp"
+            android:clickable="false"
+            android:contentDescription="@string/content_description_paint_undo"
+            android:onClick="onButtonClicked"
+            android:src="@drawable/button_paint_undo"
+            android:visibility="visible" />
+
+        <!-- redo -->
+        <ImageView
+            android:id="@+id/button_paint_redo"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_margin="10dp"
+            android:clickable="false"
+            android:contentDescription="@string/content_description_paint_redo"
+            android:onClick="onButtonClicked"
+            android:src="@drawable/button_paint_redo"
+            android:visibility="visible" />
+
+    </LinearLayout>
+
+    <!-- Erase -->
+    <ImageView
+        android:id="@+id/button_paint_erase"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="10dp"
+        android:contentDescription="@string/content_description_paint_erase"
+        android:focusable="true"
+        android:onClick="onButtonClicked"
+        android:src="@drawable/button_paint_erase"
+        android:visibility="visible" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:visibility="visible">
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
+            <!-- Colors -->
+            <ImageView
+                android:id="@+id/button_color_white"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_margin="10dp"
+                android:background="#88FFFFFF"
+                android:contentDescription="@string/content_description_color_white"
+                android:focusable="true"
+                android:onClick="onButtonClicked"
+                android:visibility="visible" />
+
+            <ImageView
+                android:id="@+id/button_color_red"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_margin="10dp"
+                android:background="#88FF0000"
+                android:contentDescription="@string/content_description_color_red"
+                android:focusable="true"
+                android:onClick="onButtonClicked"
+                android:visibility="visible" />
+
+            <ImageView
+                android:id="@+id/button_color_green"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_margin="10dp"
+                android:background="#8800FF00"
+                android:contentDescription="@string/content_description_color_green"
+                android:focusable="true"
+                android:onClick="onButtonClicked"
+                android:visibility="visible" />
+
+            <ImageView
+                android:id="@+id/button_color_blue"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_margin="10dp"
+                android:background="#880000FF"
+                android:contentDescription="@string/content_description_color_blue"
+                android:focusable="true"
+                android:onClick="onButtonClicked"
+                android:visibility="visible" />
+
+            <ImageView
+                android:id="@+id/button_color_yellow"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_margin="10dp"
+                android:background="#88FFFF00"
+                android:contentDescription="@string/content_description_color_yellow"
+                android:focusable="true"
+                android:onClick="onButtonClicked"
+                android:visibility="visible" />
+
+            <ImageView
+                android:id="@+id/button_color_black"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_margin="10dp"
+                android:background="#88000000"
+                android:contentDescription="@string/content_description_color_black"
+                android:focusable="true"
+                android:onClick="onButtonClicked"
+                android:visibility="visible" />
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
+        </LinearLayout>
+
+        <!-- Drawing Tools -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
+            <!-- Grid -->
+            <ImageView
+                android:id="@+id/button_paint_grid"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_margin="10dp"
+                android:contentDescription="@string/content_description_paint_grid"
+                android:focusable="true"
+                android:onClick="onButtonClicked"
+                android:src="@drawable/paint_grid_off"
+                android:visibility="gone" />
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
+            <!-- Line -->
+            <ImageView
+                android:id="@+id/button_paint_line"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_margin="10dp"
+                android:contentDescription="@string/content_description_paint_line"
+                android:focusable="true"
+                android:onClick="onButtonClicked"
+                android:src="@drawable/button_paint_line"
+                android:visibility="visible" />
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
+            <!-- Rect -->
+            <ImageView
+                android:id="@+id/button_paint_rect"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_margin="10dp"
+                android:contentDescription="@string/content_description_paint_rect"
+                android:focusable="true"
+                android:onClick="onButtonClicked"
+                android:src="@drawable/button_paint_rect"
+                android:visibility="visible" />
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
+            <!-- Round -->
+            <ImageView
+                android:id="@+id/button_paint_round"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_margin="10dp"
+                android:contentDescription="@string/content_description_paint_round"
+                android:focusable="true"
+                android:onClick="onButtonClicked"
+                android:src="@drawable/button_paint_round"
+                android:visibility="visible" />
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
+            <!-- Freehand -->
+            <ImageView
+                android:id="@+id/button_paint_path"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_margin="10dp"
+                android:contentDescription="@string/content_description_paint_path"
+                android:focusable="true"
+                android:onClick="onButtonClicked"
+                android:src="@drawable/button_paint_path"
+                android:visibility="visible" />
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</FrameLayout>

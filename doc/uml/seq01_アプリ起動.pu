@@ -1,0 +1,59 @@
+@startuml app_wakeup
+
+title アプリ起動時の処理
+
+actor User
+participant GalleryApp as Gallery
+participant MainActivity as Main
+participant VideoController as Controller
+participant ViewController as Views
+participant VideoDecoder as Decoder
+participant PermissionManager as Permission
+participant VideoSurfaceView as Surface
+participant VideoProgressBar as Progress
+participant VideoPlayerHandler as Handler
+
+User ->> Main : アプリ起動
+
+Main -> Main : onCreate
+activate Main
+    Main -> Main : setContentView
+
+    create Surface
+    Main -> Surface ++ : インスタンス生成
+    Surface -> Surface : init
+    Main <-- Surface -- :
+    
+    create Progress
+    Main -> Progress ++ : インスタンス生成
+    Main <-- Progress -- : 
+deactivate Main
+
+Main -> Main : onStart
+activate Main
+    Main -> Main : hideSystemUI
+
+    create Controller
+    Main -> Controller ++ : インスタンス生成
+    Controller -> Views **
+    Controller -> Decoder **
+    activate Decoder
+    hnote over Decoder
+    INIT
+    end note
+    Decoder -> Handler **
+    deactivate Decoder
+    Controller -> Controller : setOnVideoChangeListener
+    return
+
+    Main -> Controller ++ : setVisibilities(rootView, INIT)
+    Controller -> Views : bindRootView
+    Controller -> Views : setVisibilities(INIT)
+    return
+deactivate Main
+
+Main -> Main : onResume
+activate Main
+deactivate Main
+
+@enduml
