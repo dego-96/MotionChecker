@@ -8,5 +8,5 @@
 .externalNativeBuild
 .cxx
 
-doc/icon/
+docs/icon/
 doc/uml/*.png
