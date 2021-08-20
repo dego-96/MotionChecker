@@ -7,7 +7,7 @@ android {
         applicationId "jp.mydns.dego.zanzo"
         minSdkVersion 24
         targetSdkVersion 30
-        versionCode 3
+        versionCode 4
         versionName "0.2.0"
     }
     buildTypes {
