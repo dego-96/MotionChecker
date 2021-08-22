@@ -40,6 +40,7 @@ public class MainActivity extends Activity {
 
     private static final String STATE_KEY_URI = "video_uri";
     private static final String STATE_KEY_PROGRESS = "video_progress";
+    private static final String STATE_KEY_MODE = "current_mode";
 
     public static final int REQUEST_PERMISSION_READ_EXTERNAL_STORAGE = 10;
     public static final int REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE = 20;
@@ -58,6 +59,7 @@ public class MainActivity extends Activity {
     // ---------------------------------------------------------------------------------------------
 
     private Uri videoUri = null;
+    private Mode currentMode = null;
     private InterstitialAd interstitialAd;
     private final InterstitialAdLoadCallback interstitialAdLoadCallback = new InterstitialAdLoadCallback() {
         @Override
@@ -121,6 +123,9 @@ public class MainActivity extends Activity {
             this.videoUri = savedInstanceState.getParcelable(STATE_KEY_URI);
             int progress = savedInstanceState.getInt(STATE_KEY_PROGRESS);
             this.getVideoController().setLastProgress(progress);
+            Mode mode = (Mode) savedInstanceState.getSerializable(STATE_KEY_MODE);
+            this.setMode(mode);
+
         }
 
         this.initAdMob();
@@ -134,7 +139,7 @@ public class MainActivity extends Activity {
         DebugLog.d(TAG, "onStart");
         super.onStart();
         ActivityHelper.hideSystemUI(this);
-        this.setMode(Mode.Video);
+        this.setMode(this.currentMode);
     }
 
     /**
@@ -190,12 +195,21 @@ public class MainActivity extends Activity {
      */
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
+        DebugLog.d(TAG, "onSaveInstanceState");
         super.onSaveInstanceState(outState);
 
         if (this.videoUri != null) {
+            // video
             outState.putParcelable(STATE_KEY_URI, this.videoUri);
+
+            // progress
             int progress = this.getVideoController().getProgress();
             outState.putInt(STATE_KEY_PROGRESS, progress);
+
+            // mode
+            if (this.currentMode != null) {
+                outState.putSerializable(STATE_KEY_MODE, this.currentMode);
+            }
         }
     }
 
@@ -423,9 +437,10 @@ public class MainActivity extends Activity {
     private void setMode(Mode mode) {
         DebugLog.d(TAG, "setMode");
 
+        this.currentMode = mode;
         ActivityHelper.setOrientationChangeable(this, mode);
 
-        if (mode == Mode.Video) {
+        if (mode == null || mode == Mode.Video) {
             this.findViewById(R.id.layout_video_controller).setVisibility(View.VISIBLE);
             this.findViewById(R.id.layout_video_paint).setVisibility(View.GONE);
             this.findViewById(R.id.layout_motion_generator).setVisibility(View.GONE);

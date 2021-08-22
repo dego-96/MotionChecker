@@ -20,40 +20,6 @@
         android:src="@drawable/button_player"
         android:visibility="visible" />
 
-    <!-- redo/undo -->
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top|center_horizontal"
-        android:orientation="horizontal"
-        android:visibility="visible">
-
-        <!-- undo -->
-        <ImageView
-            android:id="@+id/button_paint_undo"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_margin="10dp"
-            android:clickable="false"
-            android:contentDescription="@string/content_description_paint_undo"
-            android:onClick="onButtonClicked"
-            android:src="@drawable/button_paint_undo"
-            android:visibility="visible" />
-
-        <!-- redo -->
-        <ImageView
-            android:id="@+id/button_paint_redo"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_margin="10dp"
-            android:clickable="false"
-            android:contentDescription="@string/content_description_paint_redo"
-            android:onClick="onButtonClicked"
-            android:src="@drawable/button_paint_redo"
-            android:visibility="visible" />
-
-    </LinearLayout>
-
     <!-- Erase -->
     <ImageView
         android:id="@+id/button_paint_erase"
@@ -253,6 +219,30 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1" />
+
+            <!-- undo -->
+            <ImageView
+                android:id="@+id/button_paint_undo"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_margin="10dp"
+                android:clickable="false"
+                android:contentDescription="@string/content_description_paint_undo"
+                android:onClick="onButtonClicked"
+                android:src="@drawable/button_paint_undo"
+                android:visibility="visible" />
+
+            <!-- redo -->
+            <ImageView
+                android:id="@+id/button_paint_redo"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_margin="10dp"
+                android:clickable="false"
+                android:contentDescription="@string/content_description_paint_redo"
+                android:onClick="onButtonClicked"
+                android:src="@drawable/button_paint_redo"
+                android:visibility="visible" />
 
         </LinearLayout>
 
