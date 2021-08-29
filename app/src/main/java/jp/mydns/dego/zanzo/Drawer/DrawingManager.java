@@ -65,8 +65,7 @@ public class DrawingManager {
 
         this.viewController.changeDrawTypeImageResource(this.drawType);
         this.viewController.changeColorImageResource(this.colorType);
-        this.viewController.setUndoEnabled(false);
-        this.viewController.setRedoEnabled(false);
+        this.viewController.setUndoRedoAvailable(this.drawItems.size(), this.lastIndex);
     }
 
     /**
@@ -135,12 +134,7 @@ public class DrawingManager {
             DebugLog.e(TAG, "undo index error");
         }
 
-        if (this.lastIndex <= 0) {
-            this.viewController.setUndoEnabled(false);
-        }
-        if (this.lastIndex < this.drawItems.size()) {
-            this.viewController.setRedoEnabled(true);
-        }
+        this.viewController.setUndoRedoAvailable(this.drawItems.size(), this.lastIndex);
     }
 
     /**
@@ -155,12 +149,7 @@ public class DrawingManager {
             DebugLog.e(TAG, "redo index error");
         }
 
-        if (this.lastIndex >= this.drawItems.size()) {
-            this.viewController.setRedoEnabled(false);
-        }
-        if (this.lastIndex > 0) {
-            this.viewController.setUndoEnabled(true);
-        }
+        this.viewController.setUndoRedoAvailable(this.drawItems.size(), this.lastIndex);
     }
 
     /**
@@ -171,8 +160,7 @@ public class DrawingManager {
         this.viewController.clear();
         this.drawItems.clear();
         this.lastIndex = 0;
-        this.viewController.setUndoEnabled(false);
-        this.viewController.setRedoEnabled(false);
+        this.viewController.setUndoRedoAvailable(this.drawItems.size(), this.lastIndex);
     }
 
     /**
@@ -190,8 +178,7 @@ public class DrawingManager {
         this.drawItems.add(item);
         this.lastIndex++;
 
-        this.viewController.setUndoEnabled(true);
-        this.viewController.setRedoEnabled(false);
+        this.viewController.setUndoRedoAvailable(this.drawItems.size(), this.lastIndex);
     }
 
     /**

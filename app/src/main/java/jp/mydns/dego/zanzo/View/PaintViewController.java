@@ -181,25 +181,17 @@ public class PaintViewController {
     }
 
     /**
-     * setUndoEnabled
+     * setUndoRedoAvailable
      *
-     * @param enabled is button enabled
+     * @param itemsCount draw items count
+     * @param index     index
      */
-    public void setUndoEnabled(boolean enabled) {
-        DebugLog.d(TAG, "setUndoEnabled");
-        ImageView imageView = (ImageView) this.views.get(R.id.button_paint_undo);
-        imageView.setEnabled(enabled);
-    }
-
-    /**
-     * setRedoEnabled
-     *
-     * @param enabled is button enabled
-     */
-    public void setRedoEnabled(boolean enabled) {
-        DebugLog.d(TAG, "setRedoEnabled");
-        ImageView imageView = (ImageView) this.views.get(R.id.button_paint_redo);
-        imageView.setEnabled(enabled);
+    public void setUndoRedoAvailable(int itemsCount, int index) {
+        DebugLog.d(TAG, "setUndoRedoAvailable");
+        boolean undoAvailable = (itemsCount > 0 && index > 0);
+        boolean redoAvailable = (itemsCount > 0 && index < itemsCount);
+        this.views.get(R.id.button_paint_undo).setEnabled(undoAvailable);
+        this.views.get(R.id.button_paint_redo).setEnabled(redoAvailable);
     }
 
     // ---------------------------------------------------------------------------------------------

@@ -150,6 +150,7 @@ public class DrawSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     public void surfaceCreated(SurfaceHolder holder) {
         DebugLog.d(TAG, "surfaceCreated");
         this.clear();
+        this.redraw();
     }
 
     /**
@@ -352,9 +353,13 @@ public class DrawSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         this.currentItem = null;
     }
 
+    /**
+     * getDrawItems
+     *
+     * @return draw items
+     */
     private List<DrawItemBase> getDrawItems() {
         return InstanceHolder.getInstance().getDrawingManager().getActiveDrawItems();
-//        return InstanceHolder.getInstance().getDrawingManager().getDrawItems();
     }
 
     /**
