@@ -175,6 +175,7 @@ public class MainActivity extends Activity {
     public void onStop() {
         DebugLog.d(TAG, "onStop");
         super.onStop();
+        this.getVideoController().pause();
     }
 
     /**
@@ -422,6 +423,7 @@ public class MainActivity extends Activity {
             this.getVideoController().join(true);
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false);
             intent.setType("video/*");
             startActivityForResult(intent, REQUEST_GALLERY);
         } else {
