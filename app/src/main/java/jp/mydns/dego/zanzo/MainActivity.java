@@ -175,7 +175,7 @@ public class MainActivity extends Activity {
     public void onStop() {
         DebugLog.d(TAG, "onStop");
         super.onStop();
-        this.getVideoController().pause();
+        this.getVideoController().join(true);
     }
 
     /**
