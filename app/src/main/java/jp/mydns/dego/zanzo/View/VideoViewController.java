@@ -49,6 +49,7 @@ public class VideoViewController {
     private Display display;
     private SparseArray<View> views;
     private final int[] viewIdList = {
+        R.id.layout_water_mark,
         R.id.video_surface_view,
         R.id.image_no_video,
         R.id.button_gallery,
@@ -76,6 +77,7 @@ public class VideoViewController {
     private final int[][] visibilityTable = {
         /* 0x00:VISIBLE,  0x04:INVISIBLE,  0x08:GONE */
         /*INIT PAUSE PLAY  SEEK  NEXT  PREV  SEEK_P */
+        {0x08, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04},   /* layout_water_mark */
         {0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   /* video_surface_view */
         {0x00, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08},   /* image_no_video */
         {0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x04},   /* button_gallery */
@@ -102,6 +104,7 @@ public class VideoViewController {
 
     private final AnimationDirection[] animationDirections = {
         /* 0:no animation,  1:left,  2:up,  3:right,  4:down */
+        AnimationDirection.None,    /* layout_water_mark */
         AnimationDirection.None,    /* video_surface_view */
         AnimationDirection.None,    /* image_no_video */
         AnimationDirection.Up,      /* button_gallery */
@@ -410,6 +413,10 @@ public class VideoViewController {
         float toY1, fromY1;
         float toY2, fromY2;
         List<Animator> animatorList = new ArrayList<>();
+
+        // change water mark visibility
+        int visibility = this.isFullScreenPreview ? View.INVISIBLE : View.VISIBLE;
+        this.views.get(R.id.layout_water_mark).setVisibility(visibility);
 
         if (this.isFullScreenPreview) {
             // animation (frame in)

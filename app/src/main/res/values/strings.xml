@@ -2,6 +2,7 @@
     <string name="app_name">zanzo</string>
 
     <!-- Layout -->
+    <string name="content_description_icon">App Icon</string>
     <string name="content_description_background">No Video Data</string>
     <string name="content_description_gallery">Select Video</string>
     <string name="content_description_play">Play Video</string>

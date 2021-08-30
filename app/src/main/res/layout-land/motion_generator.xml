@@ -72,7 +72,8 @@
             android:id="@+id/text_motion_description"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="10dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginBottom="0dp"
             android:text="@string/description_motion"
             android:textColor="@android:color/white"
             android:textSize="18sp" />
@@ -81,17 +82,18 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
+            android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:orientation="vertical">
+                android:orientation="horizontal">
 
                 <TextView
                     android:id="@+id/text_motion_frame_count"
-                    android:layout_width="wrap_content"
+                    android:layout_width="130dp"
                     android:layout_height="wrap_content"
                     android:layout_margin="10dp"
                     android:text="@string/text_frame_count"
@@ -103,10 +105,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
-                    android:layout_marginLeft="15dp"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginRight="15dp"
-                    android:layout_marginBottom="10dp" />
+                    android:layout_margin="10dp" />
 
             </LinearLayout>
 
@@ -114,7 +113,9 @@
                 android:id="@+id/button_motion_generate"
                 android:layout_width="100dp"
                 android:layout_height="60dp"
-                android:layout_margin="10dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginBottom="10dp"
                 android:clickable="true"
                 android:focusable="true"
                 android:onClick="onButtonClicked"
